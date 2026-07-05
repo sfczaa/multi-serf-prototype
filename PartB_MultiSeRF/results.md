@@ -406,11 +406,15 @@ At 20× the headline dataset, the picture changes qualitatively:
   3.5–3.8 QPS, and at s_B=1–5% still falls short of the 0.9 floor (0.888/0.892
   reported at its best point — so those two ratios *understate* the true
   at-recall gap).
-- **The wide-B crossover is gone**: Multi-SeRF wins at every selectivity,
-  including 5.0× at s_B=50%. The per-bucket graphs (6,250 points each) reach
-  the recall floor with far smaller ef than one 100k-node graph — the
-  wide-B penalty seen at n=5k (§1–2) is a small-n artifact of this
-  implementation, not a property that worsens with scale.
+- **Stated precisely**: at s_B=1–5%, Multi-SeRF clears recall 0.9 while the
+  baseline does not at the tested α cap — those two ratios compare against the
+  baseline's best sub-floor point, so they are one-sided (Multi-SeRF is both
+  faster *and* the only arm meeting the floor). At s_B=10–50%, both arms clear
+  recall 0.9 and Multi-SeRF is faster (17.3× / 8.6× / 5.0×). The wide-B
+  crossover of n=5k is gone: the per-bucket graphs (6,250 points each) reach
+  the recall floor with far smaller ef than one 100k-node graph — the wide-B
+  penalty seen in §1–2 is a small-n artifact of this implementation, not a
+  property that worsens with scale.
 - Trend across n for the 1% cell: 15–25× (5k) → 15.5× (20k) → 22.5× (100k);
   and for the 50% cell: 0.38–0.43× (5k) → 0.85× (20k) → 5.0× (100k).
 
@@ -426,6 +430,75 @@ per-call overhead on 32-element arrays dwarfs the tight-loop cost it replaces.
 The change was verified behaviour-identical (bit-identical smoke results) and
 then reverted. Pushing past n≈100k needs a compiled kernel (numba/C++), which
 is outside this prototype's scope by design.
+
+## 13. Adaptive threshold sensitivity: is §10 a τ=0.15 coincidence? (added 2026-07-05)
+
+`run_adaptive_tau_sweep.py` / `results_partB_adaptive_tau.json`. Same main
+config as §10; the K=1 and K=16 arms are measured once per cell and every τ
+variant of the adaptive arm is reported against the same baseline.
+Adaptive/SeRF QPS ratio, with the fraction of queries routed to buckets:
+
+| s_B | CS/SeRF | τ=0.05 | τ=0.10 | τ=0.15 | τ=0.25 | τ=0.50 |
+|---:|---:|---:|---:|---:|---:|---:|
+| 1%  | 45.77× | 26.64× (100%) | 26.26× (100%) | 24.67× (100%) | 24.36× (100%) | 22.22× (100%) |
+| 5%  | 3.93×  | 1.86× (73%)   | 3.38× (100%)  | 3.43× (100%)  | 4.10× (100%)  | 3.01× (100%) |
+| 10% | 2.49×  | 1.04× (0%)    | 1.96× (60%)   | 4.05× (100%)  | 3.96× (100%)  | 3.05× (100%) |
+| 25% | 0.64×  | 1.00× (0%)    | 0.76× (0%)    | 0.75× (0%)    | 1.09× (66%)   | 0.67× (100%) |
+| 50% | 0.37×  | 0.87× (0%)    | 1.03× (0%)    | 0.85× (0%)    | 1.24× (0%)    | 0.51× (68%)  |
+
+- **The result is not a τ=0.15 coincidence: τ ∈ [0.10, 0.25] all behave.**
+  Narrow-B routing (1%) is unanimous across every τ tested; the 5–10% wins
+  hold for τ ≥ 0.10 (≥ 0.15 for the full 10% win); wide-B stays at ≈parity
+  for τ ≤ 0.25.
+- The failure modes are the two predictable ones. **τ too small (0.05)
+  under-routes**: it forfeits the 5% win partially (73% routed → 1.86×) and
+  the 10% win entirely (0% routed → 1.04×) — safe but wasteful. **τ too large
+  (0.50) over-routes**: it inherits the wide-B penalty it was supposed to
+  avoid (0.67× at 25%, 0.51× at 50%).
+- Honest reading of the noise: cells where adaptive routes 0% run the *same
+  arm* as the baseline, so their ratio is pure run-to-run timing variance —
+  here spanning 0.75–1.24×. Treat ±25% as the noise band on any single cell,
+  consistent with §9.1. (Same reason the CS/SeRF 1% cell reads 45.8× in this
+  run: the baseline landed on its slow α=256 grid point at 15.4 QPS.)
+- Boundary cells route *partially* (e.g. 60% at τ=0.10/s_B=10%) because the
+  per-query estimate varies with window position across bucket boundaries —
+  the router degrades gradually, not with a cliff.
+
+## 14. Mixed workload: one stream, one shared α per index (added 2026-07-05)
+
+`run_mixed_workload.py` / `results_partB_mixed_workload.json`. Instead of
+per-selectivity sweeps, one query stream mixing window widths — 40% at
+s_B=1%, 20% at 5%, 20% at 10%, 10% at 25%, 10% at 50% (nq=100, main config)
+— and one shared over-fetch α per index, raised until **mean recall over the
+whole stream** ≥ 0.9. This is closer to a system setting where the index
+cannot retune per query class.
+
+| arm | α | mean recall | QPS | vs K=1 |
+|---|---:|---:|---:|---:|
+| SeRF+ResidualB (K=1) | 128 | 0.949 | 26.3 | 1.00× |
+| Multi-SeRF K=4 | 32 | 0.954 | 86.0 | 3.28× |
+| Multi-SeRF K=16 | 8 | 0.960 | 238.7 | 9.09× |
+| **Adaptive (τ=0.15)** | 8 | 0.920 | **262.2** | **9.98×** |
+
+- On this narrow-heavy mix the adaptive router (80% of the stream routed to
+  buckets) gives the **best overall throughput — 9.98× the baseline, and
+  slightly above fixed K=16**: the 20% wide queries run on the cheap single
+  graph instead of paying K=16's multi-bucket cost.
+- The baseline pays for the whole stream at once: the 40% narrow queries force
+  α=128 *for every query*, dropping it to 26 QPS.
+- Caveats, honestly: single run, single seed, one hand-picked mix. The recall
+  floor is on the **stream mean** (0.92) — per-class recall is not
+  individually floored, and the narrow classes sit closest to the boundary.
+  A wide-heavy mix would favour K=1/K=4 and shrink adaptive's margin toward
+  parity; the point established here is that adaptive needs no per-workload
+  retuning to sit at or near the best fixed arm.
+
+### Files added by §13–14
+
+- `run_adaptive_tau_sweep.py`, `results_partB_adaptive_tau.json` /
+  ``
+- `run_mixed_workload.py`, `results_partB_mixed_workload.json` /
+  ``
 
 ### Files added by §10–12
 

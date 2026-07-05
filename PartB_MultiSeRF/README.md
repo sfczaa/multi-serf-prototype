@@ -15,11 +15,11 @@ the `SeRF+ResidualB` baseline by 15–25x at 1% `B` selectivity and 3.5–4x at 
 (range over three data seeds), and the advantage grows with n. A query-adaptive
 router on top removes the wide-window penalty entirely.
 
-**Quick start** (needs only `numpy`):
+**Quick start**:
 
 ```bash
-py -3 demo.py       # ~30 s narrated demo of the routing mechanism
-py -3 sql_demo.py   # the index answering a filtered k-NN question in DuckDB SQL
+py -3 demo.py       # ~30 s narrated demo of the routing mechanism (needs only numpy)
+py -3 sql_demo.py   # filtered k-NN in DuckDB SQL (additionally needs duckdb and pandas)
 ```
 
 ## Why This Matters
@@ -122,7 +122,7 @@ which both of the proposal's success criteria hold simultaneously. See
 | B correlated with vectors (`--b-corr 0.8`, rank corr ≈ 0.78) | 14.5x / 3.8x / 2.8x / 0.76x / 0.41x — inside the seed-variance envelope; no degradation observed at this correlation strength. |
 | Real vectors: SIFT10K (128-d, corpus queries) | With M=32/ef_build=200, the pattern reproduces: **14.7x** at 1%, 3.6x at 5%, crossover ~10–12%. Honest catch: at the default M=16 build, *neither* arm reaches recall 0.9 on real clustered vectors — the simplified graph needs stronger build parameters off synthetic data (both runs kept). |
 | n = 20,000 (single run, nq=50) | Advantage grows across the board: 15.5x / 11.2x / 6.5x / 2.9x / 0.85x. The crossover moves past 25% B selectivity. |
-| n = 100,000 (single run, nq=50) | The baseline breaks down (α=512 everywhere, 3.5–3.8 QPS, misses the floor at 1–5%); Multi-SeRF wins at **every** selectivity — 22.5x / 25.1x / 17.3x / 8.6x / **5.0x at 50%**. The wide-B penalty is a small-n artifact. |
+| n = 100,000 (single run, nq=50) | At 1–5%, Multi-SeRF clears recall 0.9 while the baseline does not at the tested α cap (512) — the 22.5x/25.1x ratios there compare against the baseline's best sub-floor point. At 10–50%, both clear recall 0.9 and Multi-SeRF is faster: 17.3x / 8.6x / **5.0x at 50%**. The wide-B penalty is a small-n artifact. |
 
 See `results.md` §9–12 for the full tables and the honest caveats on each check.
 
@@ -136,6 +136,8 @@ See `results.md` for the full write-up, caveats, and K-sensitivity tables.
 | `multiserf_proto.py` | `SegmentGraph1D`, `CompoundSegment`, `AdaptiveIndex`, ground truth and recall helpers |
 | `run_experiments_partB.py` | experiment runner for B-selectivity sweeps and QPS-at-recall measurement |
 | `run_adaptive.py` | adaptive-routing experiment: K=1 vs K=16 vs query-time routing |
+| `run_adaptive_tau_sweep.py` | routing-threshold sensitivity: τ ∈ {0.05…0.50} vs the same baselines |
+| `run_mixed_workload.py` | mixed-selectivity stream, one shared α per index (K=1/4/16/adaptive) |
 | `demo.py` | ~30 s quick demo: build both indexes, watch the routing on 3 window widths |
 | `sql_demo.py` | DuckDB scalar-UDF demo: the index answering a filtered k-NN question in SQL |
 | `test_sanity.py` | sanity tests: `recall_at_k` semantics; K=1 equals the baseline path; predicate safety; adaptive routing |
@@ -151,6 +153,8 @@ See `results.md` for the full write-up, caveats, and K-sensitivity tables.
 | `results_partB_n20k.json` | n=20,000 scale check (nq=50) |
 | `results_partB_n100k.json` | n=100,000 scale check (nq=50) |
 | `results_partB_adaptive.json` | adaptive-routing run (K=1 / K=16 / adaptive) |
+| `results_partB_adaptive_tau.json` | τ sensitivity: adaptive holds for τ ∈ [0.10, 0.25] |
+| `results_partB_mixed_workload.json` | mixed workload: adaptive gives the best stream throughput |
 | `results_partB_sift.json` | SIFT10K, default M=16 build (recall floor not reached — kept as a negative finding) |
 | `results_partB_sift_M32.json` | SIFT10K, M=32/ef_build=200 (headline pattern reproduces) |
 | `results_partB_smoke.json` | small smoke run |
@@ -234,8 +238,9 @@ reruns experiments.
   simultaneously (27x at 1%, 1.00x at 50%).
 - A restrictive A-range run exercises both A filtering and B bucket routing.
 - The pattern reproduces on real SIFT10K vectors (with a stronger graph build).
-- Scale runs at n=20k and n=100k show the advantage growing with n; at n=100k
-  Multi-SeRF wins at every tested selectivity.
+- Scale runs at n=20k and n=100k show the advantage growing with n. At n=100k,
+  Multi-SeRF is faster wherever both arms reach recall 0.9 (10–50%), and at
+  1–5% it clears the floor while the baseline cannot at the tested α cap.
 
 ## Limitations
 

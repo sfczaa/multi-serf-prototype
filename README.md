@@ -85,8 +85,9 @@ Use Part B as the main story:
 > index. It partitions data by a secondary range attribute and searches only
 > relevant buckets, improving QPS by 15–25x over a residual-filter baseline
 > when the secondary predicate is selective — reproduced on real SIFT vectors,
-> growing with n (every selectivity wins at n=100k), and topped with a
-> query-adaptive router that removes the wide-window penalty.
+> growing with n (at n=100k it is faster wherever both arms reach recall 0.9,
+> and at 1–5% it is the only arm that does), topped with a query-adaptive
+> router that removes the wide-window penalty.
 
 Keep the scope precise:
 

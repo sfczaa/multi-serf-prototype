@@ -80,9 +80,9 @@ def main():
           f"{1e3 * t_udf / nq:6.1f} ms/query")
     print(f"\nexample rows (last query): {approx[:5]} ...")
     print("\ncaveats: scalar-UDF demo only - no extension/persistence/planner")
-    print("integration; at this scale DuckDB's vectorised scan is expected to")
-    print("win on wall-clock (see results.md section 6). The point is the SQL")
-    print("interface and result agreement, not the absolute timing.")
+    print("integration. This demo shows the SQL-facing API shape and result")
+    print("agreement; the toy wall-clock numbers above are not a performance")
+    print("claim in either direction (see results.md for the measured claims).")
 
 
 if __name__ == "__main__":
