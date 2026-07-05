@@ -7,8 +7,25 @@ file, and serves nearest-neighbour queries with PQ-pruned beam search +
 full-precision rerank. The future DuckDB extension would swap the OS-file
 reader for a `BufferManager::Pin(block_id)` call on the same byte layout.
 
-This repo is the **algorithmic kernel**, not the DuckDB extension. See
+This is the **secondary systems prototype** in this repository — the primary
+portfolio project is [PartB_MultiSeRF](../PartB_MultiSeRF/README.md). This
+directory is the **algorithmic kernel**, not the DuckDB extension; see
 `design_notes.md` for what is and is not in scope.
+
+**Quick start**:
+
+```bash
+py -3 demo.py                       # ~1 min: build a small index, verify
+                                    # eager==mmap, print recall/latency/layout
+py -3 -m pytest test_sanity.py -q   # ~10 s: storage-layer invariants
+```
+
+## The storage layout at a glance
+
+![On-disk layout: header, graph adjacency, PQ codes, full vectors, codebook — page-aligned segments with to-scale size breakdown](figures/fig_file_layout.png)
+
+The file-size formula `n × (4·M + pq_m + 4·dim)` plus page padding is the one
+proposal claim this prototype verifies directly (see `results.md` §1.3).
 
 ## Files
 
@@ -18,8 +35,12 @@ This repo is the **algorithmic kernel**, not the DuckDB extension. See
 | `results.md`      | experiment write-up; read §0 for caveats before the headline tables |
 | `diskann_proto.py`| implementation: PQ, Vamana builder, page-aligned writer, mmap reader, beam search, ground-truth `exact_knn`, `recall_at_k` |
 | `run_experiments.py` | CLI runner: dataset → build → benchmark sweep → JSON + markdown output |
+| `demo.py` | ~1 min narrated demo: small build, eager-vs-mmap check, layout printout |
+| `test_sanity.py` | sanity tests: byte-exact roundtrip, eager==mmap, header/page alignment, metric correctness |
+| `make_figures.py` | regenerates `figures/*.png` from the recorded result JSONs |
+| `figures/` | result figures used in this README |
 | `requirements.txt` | pinned dependency floor |
-| `results_*.json`, `` | raw outputs from past runs |
+| `results_*.json`, `` | raw outputs from past runs (`results_siftsmall.json` = the SIFT10K run, results.md §8) |
 | `proto*.idx` | built index files (regenerable; safe to delete) |
 
 ## Install
@@ -72,17 +93,23 @@ python run_experiments.py --dataset sift --sift-dir ./siftsmall \
     --L 128 --out results_siftsmall.json --index proto_sift.idx --rebuild
 ```
 
-SIFT results are not yet included in `results.md` — the loader works but no
-SIFT runs have been recorded.
+A siftsmall run is recorded in `results.md` §8 (`results_siftsmall.json`):
+**recall@10 = 0.998 at L=64** with the same hyperparameters that miss the
+0.95 bar on Gaussian — the recall gap in the headline tables is a property
+of uniform synthetic data, not of the index. Caveats (10k vectors, 100
+corpus queries, single run) in §8.
 
 ## Reading the results
 
 `results.md` §0 lists the caveats that apply to every number in the document.
-The most load-bearing ones are: only synthetic Gaussian has been benchmarked,
-the `proto-mmap` numbers are warm-cache (no cold-disk `proto-cold` mode is
-implemented), and the older n=5k / n=10k tables predate the held-out-query
-fix. Treat the prototype as a credibility check on the algorithmic kernel,
-not a SIFT-grade benchmark.
+The most load-bearing ones are: the `proto-mmap` numbers are warm-cache (no
+cold-disk `proto-cold` mode is implemented), and the older n=5k / n=10k
+tables predate the held-out-query fix. Treat the prototype as a credibility
+check on the algorithmic kernel, not a SIFT-grade benchmark.
+
+![Recall vs beam width L on held-out Gaussian: the curves climb but miss the 0.95 proposal bar; pynndescent reference shown](figures/fig_recall_vs_L.png)
+
+![Eager vs mmap mean latency by L: the mmap surcharge is 1.2-1.9x at warm cache](figures/fig_latency.png)
 
 ## What's not in this repo
 

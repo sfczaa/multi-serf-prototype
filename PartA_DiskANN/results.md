@@ -15,6 +15,10 @@ older runs, but no SIFT results have been collected or recorded yet. Gaussian
 may be harder for graph ANN than SIFT (no cluster structure), but treating the
 numbers below as a "pessimistic floor" for SIFT is speculation until verified.
 
+> **Update 2026-07-06:** a siftsmall run has since been recorded — see §8.
+> The "Gaussian is harder" hypothesis held: recall@10 = 0.998 at L=64 on
+> SIFT10K with the same hyperparameters. §1–§5 below are unchanged.
+
 ## 0. Caveats up front (please read before the tables)
 
 These caveats apply to every number in this document. Several are limitations that
@@ -136,7 +140,7 @@ others. Concretely:
 
 | proposal claim | prototype status |
 |---|---|
-| **recall@10 ≥ 0.95** | Short of the bar on held-out Gaussian: best 0.937 at n=5k / L=256 and 0.876 at n=10k / L=256. Pynndescent on the same data lands at 0.945 / 0.896, so the prototype trails it by a small margin and the 0.95 bar is itself out of reach for both at n=10k. The bar may be reachable with larger `M` / `ef_construction` / `pq_m` or on a clustered real dataset (SIFT); neither has been tried. As of this writing the bar is **not** cleared on the held-out path. |
+| **recall@10 ≥ 0.95** | Short of the bar on held-out Gaussian: best 0.937 at n=5k / L=256 and 0.876 at n=10k / L=256. Pynndescent on the same data lands at 0.945 / 0.896, so the prototype trails it by a small margin and the 0.95 bar is itself out of reach for both at n=10k. The bar may be reachable with larger `M` / `ef_construction` / `pq_m` or on a clustered real dataset (SIFT); neither has been tried. As of this writing the bar is **not** cleared on the held-out path. *(Update 2026-07-06: cleared on real SIFT10K — 0.998 at L=64; see §8.)* |
 | **query latency within 3–5× in-memory HNSW** | Not directly tested. Our HNSW stand-in (`pynndescent`) is JIT-compiled while the prototype is pure Python + NumPy, so any latency ratio mixes algorithmic cost with implementation overhead. The eager-vs-mmap ratio reported in §2.1 is a *different* quantity and should not be confused with this target. |
 | **on-disk footprint ~ `n × (4·M + pq_m + 4·dim)`** | Matches the formula within page-alignment rounding. At n=10k: 7.37 MB total = 1.95 MB graph + 0.16 MB PQ + 5.12 MB full + 0.13 MB codebook + padding. This is the cleanest claim that does hold. |
 | **peak resident memory bounded** | Suggestive but not rigorous. `proto-mmap` RSS rises modestly above pre-build (codebook + Python overhead) and the full segment is not materialised into a numpy array, which is the expected behaviour. We did not stress this with a dataset larger than RAM, which would be the real test. |
@@ -274,6 +278,7 @@ gated by algorithmic cost. The chunked builder in the proposal targets the
 - **Real ANN benchmark datasets.** A SIFT (`.fvecs`) loader is now in
   `run_experiments.py`, but no SIFT benchmark run has been collected or
   recorded; all numbers in this document are on synthetic Gaussian.
+  *(Update 2026-07-06: no longer true — a siftsmall run is recorded in §8.)*
 - **Cold-cache / disk-bound behaviour.** No `proto-cold` mode; mmap runs
   against whatever the OS page cache holds.
 - **1M–10M scale.** Build is Python-bound. The algorithmic claims should
@@ -345,3 +350,66 @@ timing change).
 - `results_smoke.json` — earlier n=1k smoke, before the `diskann_proto.py` timing change
 - `proto*.idx` — built indices (regenerable; safe to delete)
 - `results.md` — this file
+
+---
+
+## 7. Tooling added post-hoc (2026-07-06)
+
+Added after the write-up above; no experiment in §1–§5 was rerun or altered.
+
+- `test_sanity.py` — 8 tests pinning the storage-layer invariants this
+  document leans on: the page-aligned file **round-trips byte-exact** (graph
+  neighbours, PQ codes, full vectors compared against the in-memory originals,
+  in both access modes), **eager and mmap return identical ids and distances**
+  per query, the header self-description is correct (magic/version/params,
+  every segment offset page-aligned, segment sizes sum to the file size), a
+  corrupted magic is rejected, and `exact_knn` / `recall_at_k` — the
+  measurement tools themselves — match naive definitions.
+- `make_figures.py` → `figures/` — recall-vs-L, eager-vs-mmap latency, and
+  the file-layout/size-breakdown diagram, all read from the recorded
+  `results_*_heldout.json` files (never rerun experiments).
+- `demo.py` — ~1 min narrated build+query demo on n=1k; asserts eager==mmap
+  on every configuration it prints.
+
+---
+
+## 8. SIFT10K run: the recall bar clears on real data (added 2026-07-06)
+
+`results_siftsmall.json` / `` / `proto_sift.idx` — the first
+recorded run on a real ANN dataset: TEXMEX `siftsmall` (10,000 base vectors,
+dim=128, the corpus's own 100 query vectors), same hyperparameters as the
+Gaussian n=10k run (M=32, ef_construction=96, pq_m=16).
+
+| method | build (s) | mean q (ms) | p95 (ms) | recall@10 |
+|---|---:|---:|---:|---:|
+| `exact` (numpy)     |   0.0 |  0.10 |   —   | 1.000 |
+| `pynndescent`       |  41.1 |  0.04 |  0.06 | 0.943 |
+| `proto-eager` L=64  | 124.9 |  3.31 | 10.65 | **0.998** |
+| `proto-eager` L=128 |   —   |  8.04 | 15.91 | **0.999** |
+| `proto-eager` L=256 |   —   | 11.78 | 19.11 | **1.000** |
+| `proto-mmap`  L=64  |   —   |  4.53 |  8.69 | 0.998 |
+| `proto-mmap`  L=128 |   —   | 10.25 | 18.85 | 0.999 |
+| `proto-mmap`  L=256 |   —   | 19.38 | 36.40 | 1.000 |
+
+- **The proposal's recall@10 ≥ 0.95 bar is cleared decisively on real data —
+  0.998 already at L=64** — with the very hyperparameters that miss it on
+  Gaussian (§1.1: 0.876 at n=10k, L=256). This confirms what §1.3 and §4
+  could only hypothesise: the miss was a property of uniform N(0, I) (no
+  cluster structure for the graph and PQ to exploit), not of the index. On
+  clustered data the PQ codes are far less lossy and the Vamana graph far
+  easier to navigate.
+- The prototype also lands **above the untuned pynndescent baseline (0.943)**
+  here; note that baseline keeps its default parameters, so read this as
+  "the bar is comfortably achievable", not as a claim of superiority.
+- The mmap warm-cache surcharge is 1.27–1.65×, consistent with §2.1's
+  Gaussian range. Build is *faster* than Gaussian n=10k (125 s vs 306 s) —
+  robust pruning converges quicker on clustered data.
+- Caveats: siftsmall only (10k vectors; not SIFT1M), 100 corpus queries,
+  single run, warm cache, and the file layout/size is identical to the
+  Gaussian n=10k case by construction (same n, dim, M, pq_m; 7.37 MB).
+
+An interesting cross-reference: in Part B the move to SIFT *exposed* a graph
+weakness (its simplified M=16 flat graph missed the recall floor on real
+data), while here the move to SIFT *fixed* the recall gap. Real data is not
+uniformly "easier" — it rewards the stronger graph construction (M=32,
+two-pass robust prune) and punishes the weaker one.

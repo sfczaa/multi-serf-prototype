@@ -63,9 +63,13 @@ quantization, page-aligned file layout, mmap-backed reads, beam search, and
 full-vector reranking.
 
 This is best presented as an advanced systems prototype, not as a finished
-DuckDB extension. The storage layout round-trips correctly and the file-size
-claim is supported, but DuckDB integration, cold-cache benchmarking, MVCC, and
-full-scale real-dataset validation are out of scope.
+DuckDB extension. The storage layout round-trips correctly (byte-exact, now
+pinned by sanity tests), the file-size claim is supported, and on real
+SIFT10K vectors the proposal's recall bar clears decisively (0.998 at L=64;
+the miss reported on synthetic Gaussian was a property of the data). DuckDB
+integration, cold-cache benchmarking, MVCC, and beyond-10k-scale validation
+remain out of scope. It ships with a one-minute `demo.py`, storage-layer
+sanity tests, and figures generated from the recorded runs.
 
 See [PartA_DiskANN/README.md](PartA_DiskANN/README.md).
 
