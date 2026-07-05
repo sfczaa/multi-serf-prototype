@@ -4,6 +4,8 @@ __pycache__/
 .pytest_cache/
 
 # local tooling / personal config — not part of the published project
+
+# personal working notes (zh-TW) — kept local only
 *.log
 *.docx
 *.docm
