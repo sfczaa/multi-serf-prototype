@@ -1,0 +1,12 @@
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# local tooling / personal config — not part of the published project
+*.log
+*.docx
+*.docm
+*.rtf
+*journal*.md
+*diary*.md

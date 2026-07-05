@@ -1,0 +1,405 @@
+{
+  "args": {
+    "n": 1000,
+    "dim": 16,
+    "nq": 20,
+    "k": 10,
+    "K": 8,
+    "M": 16,
+    "ef_build": 64,
+    "a_sel": 1.0,
+    "b_sweep": "0.01,0.05,0.10,0.25,0.50",
+    "out": "results_partB_smoke.json",
+    "seed": 0
+  },
+  "index": {
+    "serf_k1": {
+      "build_s": 1.0089870999800041,
+      "edges": 31728,
+      "size_bytes": 452736
+    },
+    "multiserf_kK": {
+      "build_s": 0.49853670003358275,
+      "edges": 29824,
+      "size_bytes": 429888,
+      "K": 8
+    }
+  },
+  "results": [
+    {
+      "s_B": 0.01,
+      "a_sel": 1.0,
+      "avg_truth_size": 8.7,
+      "exact_qps": 10587.052320957748,
+      "rangefirst_qps": 61728.39079902226,
+      "serf_residualB": {
+        "alpha": 64,
+        "recall": 0.7476785714285714,
+        "qps": 138.45276275102336,
+        "mean_buckets": 1.0,
+        "reached_target": false
+      },
+      "multiserf_cs": {
+        "alpha": 16,
+        "recall": 1.0,
+        "qps": 1040.4906938179229,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "hnsw_postfilter": {
+        "alpha": 64,
+        "recall": 0.7476785714285714,
+        "qps": 150.1675118150718,
+        "mean_buckets": 1.0,
+        "reached_target": false
+      },
+      "cs_over_serf_qps_ratio": 7.515131320918565,
+      "serf_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.00625,
+          "qps": 981.8553175337131,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 2,
+          "recall": 0.0125,
+          "qps": 1046.0962271058834,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 4,
+          "recall": 0.018055555555555554,
+          "qps": 882.1687240841387,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 8,
+          "recall": 0.03861111111111111,
+          "qps": 584.2520696462473,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 16,
+          "recall": 0.11583333333333334,
+          "qps": 374.57742954128,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 32,
+          "recall": 0.3621626984126984,
+          "qps": 229.8689402560295,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 64,
+          "recall": 0.7476785714285714,
+          "qps": 138.45276275102336,
+          "mean_buckets": 1.0
+        }
+      ],
+      "cs_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.05416666666666666,
+          "qps": 1281.2135651838437,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 2,
+          "recall": 0.13083333333333333,
+          "qps": 1544.508885138207,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 4,
+          "recall": 0.3895238095238095,
+          "qps": 1116.9689989720425,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 8,
+          "recall": 0.7464285714285714,
+          "qps": 1186.3170137060501,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 16,
+          "recall": 1.0,
+          "qps": 1040.4906938179229,
+          "mean_buckets": 1.0
+        }
+      ]
+    },
+    {
+      "s_B": 0.05,
+      "a_sel": 1.0,
+      "avg_truth_size": 10.0,
+      "exact_qps": 24440.91574748159,
+      "rangefirst_qps": 48567.26655518915,
+      "serf_residualB": {
+        "alpha": 32,
+        "recall": 0.9949999999999999,
+        "qps": 228.26985156007416,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "multiserf_cs": {
+        "alpha": 4,
+        "recall": 0.99,
+        "qps": 1204.5362834086518,
+        "mean_buckets": 1.2,
+        "reached_target": true
+      },
+      "hnsw_postfilter": {
+        "alpha": 32,
+        "recall": 0.9949999999999999,
+        "qps": 253.69249407444838,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "cs_over_serf_qps_ratio": 5.2768084579564025,
+      "serf_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.045,
+          "qps": 759.734093518973,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 2,
+          "recall": 0.065,
+          "qps": 803.4032149962983,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 4,
+          "recall": 0.19500000000000003,
+          "qps": 760.6674104173256,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 8,
+          "recall": 0.35500000000000004,
+          "qps": 669.7340505597701,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 16,
+          "recall": 0.76,
+          "qps": 386.4794046762695,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 32,
+          "recall": 0.9949999999999999,
+          "qps": 228.26985156007416,
+          "mean_buckets": 1.0
+        }
+      ],
+      "cs_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.38,
+          "qps": 1267.7725882913107,
+          "mean_buckets": 1.2
+        },
+        {
+          "alpha": 2,
+          "recall": 0.7649999999999999,
+          "qps": 1167.8832107896371,
+          "mean_buckets": 1.2
+        },
+        {
+          "alpha": 4,
+          "recall": 0.99,
+          "qps": 1204.5362834086518,
+          "mean_buckets": 1.2
+        }
+      ]
+    },
+    {
+      "s_B": 0.1,
+      "a_sel": 1.0,
+      "avg_truth_size": 10.0,
+      "exact_qps": 15751.752312352843,
+      "rangefirst_qps": 29274.006246418467,
+      "serf_residualB": {
+        "alpha": 16,
+        "recall": 0.985,
+        "qps": 372.70738379908414,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "multiserf_cs": {
+        "alpha": 2,
+        "recall": 0.985,
+        "qps": 809.533061544282,
+        "mean_buckets": 1.85,
+        "reached_target": true
+      },
+      "hnsw_postfilter": {
+        "alpha": 16,
+        "recall": 0.985,
+        "qps": 454.9921739823234,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "cs_over_serf_qps_ratio": 2.1720338708950235,
+      "serf_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.1,
+          "qps": 824.3105673494547,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 2,
+          "recall": 0.2,
+          "qps": 703.0173482268515,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 4,
+          "recall": 0.445,
+          "qps": 937.8399676799762,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 8,
+          "recall": 0.805,
+          "qps": 530.9772109768895,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 16,
+          "recall": 0.985,
+          "qps": 372.70738379908414,
+          "mean_buckets": 1.0
+        }
+      ],
+      "cs_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.825,
+          "qps": 762.3403816705263,
+          "mean_buckets": 1.85
+        },
+        {
+          "alpha": 2,
+          "recall": 0.985,
+          "qps": 809.533061544282,
+          "mean_buckets": 1.85
+        }
+      ]
+    },
+    {
+      "s_B": 0.25,
+      "a_sel": 1.0,
+      "avg_truth_size": 10.0,
+      "exact_qps": 23394.549333529423,
+      "rangefirst_qps": 36596.52531452908,
+      "serf_residualB": {
+        "alpha": 4,
+        "recall": 0.945,
+        "qps": 876.5547917934111,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "multiserf_cs": {
+        "alpha": 1,
+        "recall": 1.0,
+        "qps": 542.1288314856408,
+        "mean_buckets": 2.9,
+        "reached_target": true
+      },
+      "hnsw_postfilter": {
+        "alpha": 4,
+        "recall": 0.945,
+        "qps": 942.9914505153345,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "cs_over_serf_qps_ratio": 0.6184768328930785,
+      "serf_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.31,
+          "qps": 763.5103138385045,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 2,
+          "recall": 0.5549999999999999,
+          "qps": 853.2459645193886,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 4,
+          "recall": 0.945,
+          "qps": 876.5547917934111,
+          "mean_buckets": 1.0
+        }
+      ],
+      "cs_curve": [
+        {
+          "alpha": 1,
+          "recall": 1.0,
+          "qps": 542.1288314856408,
+          "mean_buckets": 2.9
+        }
+      ]
+    },
+    {
+      "s_B": 0.5,
+      "a_sel": 1.0,
+      "avg_truth_size": 10.0,
+      "exact_qps": 24233.612084059958,
+      "rangefirst_qps": 29214.140744871034,
+      "serf_residualB": {
+        "alpha": 2,
+        "recall": 0.905,
+        "qps": 773.6584766367569,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "multiserf_cs": {
+        "alpha": 1,
+        "recall": 1.0,
+        "qps": 297.0863257053919,
+        "mean_buckets": 5.0,
+        "reached_target": true
+      },
+      "hnsw_postfilter": {
+        "alpha": 2,
+        "recall": 0.905,
+        "qps": 825.494575632879,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "cs_over_serf_qps_ratio": 0.38400190093810344,
+      "serf_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.48,
+          "qps": 779.3199668417242,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 2,
+          "recall": 0.905,
+          "qps": 773.6584766367569,
+          "mean_buckets": 1.0
+        }
+      ],
+      "cs_curve": [
+        {
+          "alpha": 1,
+          "recall": 1.0,
+          "qps": 297.0863257053919,
+          "mean_buckets": 5.0
+        }
+      ]
+    }
+  ]
+}
