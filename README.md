@@ -43,9 +43,11 @@ over three data seeds):
 The result supports the main claim: bucket routing helps most when the second
 range predicate is selective. It also shows the trade-off honestly: when the
 `B` predicate is wide, Multi-SeRF searches many buckets and can become slower
-than a single baseline graph. Robustness checks (three data seeds, a
-correlated-B run, and a single n=20k run where the advantage grows across the
-board) are in [PartB_MultiSeRF/results.md](PartB_MultiSeRF/results.md) §9.
+than a single baseline graph — and then **resolves that trade-off** with a
+query-adaptive router that keeps both indexes and picks per query, reaching
+27x on narrow windows while staying at parity (1.00x) on wide ones. Robustness
+checks (three data seeds, a correlated-B run, real SIFT10K vectors, and larger-n
+runs) are in [PartB_MultiSeRF/results.md](PartB_MultiSeRF/results.md) §9–12.
 
 See [PartB_MultiSeRF/README.md](PartB_MultiSeRF/README.md) for the full Part B
 orientation and [PartB_MultiSeRF/results.md](PartB_MultiSeRF/results.md) for
@@ -82,8 +84,9 @@ Use Part B as the main story:
 > I built a Python prototype of a multi-attribute range-filtered vector search
 > index. It partitions data by a secondary range attribute and searches only
 > relevant buckets, improving QPS by 15–25x over a residual-filter baseline
-> when the secondary predicate is selective — with the advantage growing at
-> larger n.
+> when the secondary predicate is selective — reproduced on real SIFT vectors,
+> growing with n (every selectivity wins at n=100k), and topped with a
+> query-adaptive router that removes the wide-window penalty.
 
 Keep the scope precise:
 

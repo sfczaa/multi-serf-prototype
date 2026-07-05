@@ -67,6 +67,50 @@ def gen_queries(nq: int, dim: int, seed: int = 12345) -> np.ndarray:
     return rng.standard_normal((nq, dim)).astype(np.float32)
 
 
+def _read_fvecs(path: Path) -> np.ndarray:
+    """TEXMEX .fvecs: per vector, an int32 dim followed by dim float32s."""
+    raw = np.fromfile(path, dtype=np.int32)
+    dim = int(raw[0])
+    return np.ascontiguousarray(
+        raw.reshape(-1, dim + 1)[:, 1:].view(np.float32))
+
+
+def load_siftsmall(seed: int = 0):
+    """SIFT10K (TEXMEX `siftsmall`): 10k real 128-d SIFT base vectors plus the
+    corpus's own 100 held-out query vectors. The corpus has no structured
+    attributes, so a and b stay synthetic Uniform[0,1] — this run makes the
+    *vectors* real, not the attribute distribution. Downloads ~5 MB into
+    data/ on first use."""
+    root = Path(__file__).resolve().parent / "data"
+    d = root / "siftsmall"
+    if not (d / "siftsmall_base.fvecs").exists():
+        import tarfile
+        import urllib.request
+        root.mkdir(exist_ok=True)
+        tgz = root / "siftsmall.tar.gz"
+        url = "https://ftp.irisa.fr/local/texmex/corpus/siftsmall.tar.gz"
+        print(f"downloading {url} ...")
+        urllib.request.urlretrieve(url, tgz)
+        with tarfile.open(tgz) as tf:
+            root_resolved = root.resolve()
+            for member in tf.getmembers():
+                member_path = Path(member.name)
+                target = (root / member_path).resolve()
+                if target != root_resolved and root_resolved not in target.parents:
+                    raise ValueError(f\"unsafe archive member path: {member.name}\")
+                if member.issym() or member.islnk():
+                    raise ValueError(f\"archive links are not allowed: {member.name}\")
+                if not (member.isdir() or member.isfile()):
+                    raise ValueError(f\"unsupported archive member: {member.name}\")
+                tf.extract(member, root)
+    X = _read_fvecs(d / "siftsmall_base.fvecs")
+    Q = _read_fvecs(d / "siftsmall_query.fvecs")
+    rng = np.random.default_rng(seed)
+    a = rng.random(X.shape[0])
+    b = rng.random(X.shape[0])
+    return X, a, b, Q
+
+
 def gen_ranges(nq: int, sel: float, seed: int) -> np.ndarray:
     """Per-query [lo, hi] windows of width `sel` over the Uniform[0,1] attribute
     domain, centred to avoid clipping (so realised selectivity ≈ sel)."""
@@ -217,19 +261,33 @@ def main():
     ap.add_argument("--b-corr", type=float, default=0.0,
                     help="correlation of attribute B with the vectors "
                          "(0.0 = independent, as in the original runs)")
+    ap.add_argument("--dataset", choices=["synthetic", "siftsmall"],
+                    default="synthetic",
+                    help="siftsmall = real SIFT10K vectors + the corpus's 100 "
+                         "queries; attributes stay synthetic")
     ap.add_argument("--b-sweep", type=str, default="0.01,0.05,0.10,0.25,0.50")
     ap.add_argument("--out", type=str, default="results_partB.json")
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
 
     b_sweep = [float(x) for x in args.b_sweep.split(",")]
+
+    if args.dataset == "siftsmall":
+        assert args.b_corr == 0.0, "--b-corr is defined for synthetic vectors only"
+        X, a, b, Q = load_siftsmall(seed=args.seed)
+        args.n, args.dim = int(X.shape[0]), int(X.shape[1])
+        args.nq = min(args.nq, Q.shape[0])
+        Q = Q[:args.nq]
+        print(f"   siftsmall: n={args.n} dim={args.dim} nq={args.nq} "
+              f"(real vectors, synthetic attributes)")
+    else:
+        X, a, b = gen_data(args.n, args.dim, seed=args.seed, b_corr=args.b_corr)
+        Q = gen_queries(args.nq, args.dim, seed=12345)
+    A_GLOBAL = a
     print(f"== Multi-SeRF experiment: n={args.n} dim={args.dim} nq={args.nq} "
           f"k={args.k} K={args.K} M={args.M} ef_build={args.ef_build} "
-          f"a_sel={args.a_sel} b_corr={args.b_corr} seed={args.seed}")
-
-    X, a, b = gen_data(args.n, args.dim, seed=args.seed, b_corr=args.b_corr)
-    A_GLOBAL = a
-    Q = gen_queries(args.nq, args.dim, seed=12345)
+          f"a_sel={args.a_sel} b_corr={args.b_corr} seed={args.seed} "
+          f"dataset={args.dataset}")
 
     # build the two indexes once
     print("building SeRF+ResidualB (K=1) ...")

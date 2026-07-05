@@ -3,6 +3,9 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
+# auto-downloaded datasets (see run_experiments_partB.py load_siftsmall)
+PartB_MultiSeRF/data/
+
 # local tooling / personal config — not part of the published project
 
 # personal working notes (zh-TW) — kept local only

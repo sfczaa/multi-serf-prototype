@@ -7,3 +7,5 @@ numpy>=1.26         # 2.x also fine; only mainstream APIs are used
 # Optional tooling. Not needed to run the prototype or experiments.
 matplotlib>=3.8     # make_figures.py only
 pytest>=8           # test_sanity.py only
+duckdb>=1.0         # sql_demo.py only
+pandas>=2.0         # sql_demo.py only (bulk load into DuckDB)

@@ -11,6 +11,8 @@ writes PNGs under figures/:
   fig_recall_qps.png    The measurement method: recall vs QPS as over-fetch α
                         grows, s_B=1%, both arms, with the 0.9 recall floor.
   fig_mechanism.png     Schematic: residual-B filtering vs B-bucket routing.
+  fig_adaptive.png      Adaptive routing vs fixed K=16 vs the K=1 baseline:
+                        query-time arm selection resolves the K trade-off.
 
 Usage:  py -3 make_figures.py
 Requires matplotlib (only for this script; the prototype itself needs numpy only).
@@ -294,9 +296,53 @@ def fig_mechanism():
     return out
 
 
+def fig_adaptive():
+    data = json.loads((HERE / "results_partB_adaptive.json").read_text(encoding="utf-8"))
+    rows = data["results"]
+    x = [r["s_B"] * 100 for r in rows]
+    fig, ax = plt.subplots(figsize=(7.2, 4.4), dpi=200)
+    ax.plot(x, [r["cs_over_serf"] for r in rows], color=MUTED, linewidth=2,
+            marker="o", markersize=5, label="Multi-SeRF (fixed K=16)")
+    ax.plot(x, [r["adaptive_over_serf"] for r in rows], color=BLUE,
+            linewidth=2, marker="o", markersize=5,
+            label="Adaptive (route by estimated s_B)")
+    for r in rows:
+        ax.annotate(f"{r['adaptive_frac_bucketed']:.0%}",
+                    (r["s_B"] * 100, r["adaptive_over_serf"]),
+                    xytext=(0, 10), textcoords="offset points", ha="center",
+                    color=INK_2ND, fontsize=7.5)
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    parity_line(ax, x_text=1.0, ha="left")
+    style_axes(ax)
+    ax.xaxis.set_major_locator(FixedLocator([1, 5, 10, 25, 50]))
+    ax.xaxis.set_minor_formatter(NullFormatter())
+    ax.set_xticklabels(["1%", "5%", "10%", "25%", "50%"])
+    ax.yaxis.set_major_locator(FixedLocator(RATIO_TICKS))
+    ax.yaxis.set_minor_formatter(NullFormatter())
+    ax.set_yticklabels([f"{t:g}×" for t in RATIO_TICKS])
+    ax.set_xlim(0.8, 75)
+    ax.set_xlabel("B-range selectivity")
+    ax.set_ylabel("QPS ratio vs SeRF+ResidualB")
+    ax.set_title("Query-time routing keeps the narrow-B win and the wide-B parity",
+                 fontsize=11, color=INK, loc="left", pad=24)
+    ax.text(0, 1.03, "QPS at recall ≥ 0.9 · n=5000, K=16, τ=0.15 · point labels: "
+                     "fraction of queries routed to the bucketed index",
+            transform=ax.transAxes, color=INK_2ND, fontsize=8.5, va="bottom")
+    ax.legend(loc="upper right", frameon=False, fontsize=9)
+    fig.tight_layout()
+    out = FIGDIR / "fig_adaptive.png"
+    fig.savefig(out)
+    plt.close(fig)
+    return out
+
+
 def main():
     FIGDIR.mkdir(exist_ok=True)
-    for fn in (fig_ratio_by_k, fig_main_k16, fig_recall_qps, fig_mechanism):
+    figs = [fig_ratio_by_k, fig_main_k16, fig_recall_qps, fig_mechanism]
+    if (HERE / "results_partB_adaptive.json").exists():
+        figs.append(fig_adaptive)
+    for fn in figs:
         # print the repo-relative path; the absolute path may contain non-ASCII
         # segments the Windows console codepage cannot encode
         print("wrote", fn().relative_to(HERE).as_posix())

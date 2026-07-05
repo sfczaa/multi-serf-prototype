@@ -276,6 +276,62 @@ class CompoundSegment:
 
 
 # ----------------------------------------------------------------------
+# AdaptiveIndex
+# ----------------------------------------------------------------------
+
+class AdaptiveIndex:
+    """Query-adaptive routing between a K=1 baseline graph and a K>1
+    Compound Segment over the same data.
+
+    The K trade-off (large K wins narrow B, small K wins wide B) does not have
+    to be resolved at build time: equal-frequency bucketing makes a
+    B-selectivity estimate free at query time. Each bucket holds ~n/K points,
+    so summing the covered fraction of every overlapping bucket's B-span
+    estimates s_B from index metadata alone — no data scan. Queries with
+    estimated s_B <= tau route to the bucketed index, the rest to the single
+    graph. Space cost: both indexes are kept (~2x edges; vectors shareable).
+
+    tau is workload- and scale-dependent: the measured ratio=1 crossover is
+    ~13% for K=16 at n=5k but moves past 25% at n=20k. Default 0.15 matches
+    the n=5k headline setting.
+    """
+
+    def __init__(self, cs1: CompoundSegment, csK: CompoundSegment,
+                 tau: float = 0.15):
+        assert len(cs1.buckets) == 1, "cs1 must be the K=1 baseline"
+        self.cs1 = cs1
+        self.csK = csK
+        self.tau = tau
+
+    def estimate_sb(self, b_lo: float, b_hi: float) -> float:
+        """Estimated fraction of points passing the B predicate, from bucket
+        boundaries only (assumes B ~uniform within a bucket's span)."""
+        K = len(self.csK.buckets)
+        est = 0.0
+        for bk in self.csK.buckets:
+            if bk.b_max < b_lo or bk.b_min > b_hi:
+                continue
+            span = bk.b_max - bk.b_min
+            if span <= 0.0:
+                est += 1.0 / K
+            else:
+                cover = min(b_hi, bk.b_max) - max(b_lo, bk.b_min)
+                est += min(1.0, max(0.0, cover / span)) / K
+        return est
+
+    def query(self, q: np.ndarray, a_lo: float, a_hi: float,
+              b_lo: float, b_hi: float, k: int, alpha: float = 2.0,
+              ef: int | None = None
+              ) -> tuple[list[int], list[float], int, bool]:
+        """Route to one arm; returns (ids, dists, buckets_visited, used_bucketed)."""
+        use_bucketed = self.estimate_sb(b_lo, b_hi) <= self.tau
+        arm = self.csK if use_bucketed else self.cs1
+        ids, ds, vb = arm.query(q, a_lo, a_hi, b_lo, b_hi, k,
+                                alpha=alpha, ef=ef)
+        return ids, ds, vb, use_bucketed
+
+
+# ----------------------------------------------------------------------
 # Ground truth + metrics
 # ----------------------------------------------------------------------
 

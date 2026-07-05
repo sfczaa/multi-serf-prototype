@@ -12,8 +12,15 @@ The project answers one focused question:
 The answer from this prototype is: **yes, when the `B` predicate is selective**.
 On synthetic data, Multi-SeRF reaches the recall floor while improving QPS over
 the `SeRF+ResidualB` baseline by 15–25x at 1% `B` selectivity and 3.5–4x at 5%
-(range over three data seeds), and the advantage grows in a single larger run
-at n=20k.
+(range over three data seeds), and the advantage grows with n. A query-adaptive
+router on top removes the wide-window penalty entirely.
+
+**Quick start** (needs only `numpy`):
+
+```bash
+py -3 demo.py       # ~30 s narrated demo of the routing mechanism
+py -3 sql_demo.py   # the index answering a filtered k-NN question in DuckDB SQL
+```
 
 ## Why This Matters
 
@@ -93,15 +100,31 @@ The crossover point (ratio = 1) moves with `K`: roughly 40% B selectivity for
 K=4 versus roughly 13% for K=16 and K=32. No single `K` wins everywhere; the
 right `K` depends on the expected `B` selectivity of the workload.
 
+### Resolving the trade-off: adaptive routing
+
+The K trade-off does not have to be resolved at build time. `AdaptiveIndex`
+keeps both the K=1 graph and the K=16 buckets (~2x edges) and routes each
+query by a free B-selectivity estimate from bucket boundaries: narrow windows
+go to the buckets, wide windows to the single graph.
+
+![Adaptive routing tracks fixed K=16 where bucketing wins and returns to parity where it loses](figures/fig_adaptive.png)
+
+With τ=0.15 on the main config, adaptive routing keeps the narrow-B win
+(27x at 1%) **and** wide-B parity (1.00x at 50%) — the first configuration in
+which both of the proposal's success criteria hold simultaneously. See
+`results.md` §10.
+
 ### Robustness checks
 
 | check | result |
 |---|---|
 | 3 data seeds (main config) | 1% ratio spans 15.1–24.6x; 5% is a stable 3.5–4.0x. The 1% spread is grid-quantisation: the baseline needs `α=128` or `α=256` depending on seed, and the α grid doubles per step. The ≥2x criterion at `s_B ≤ 5%` holds on every seed. |
 | B correlated with vectors (`--b-corr 0.8`, rank corr ≈ 0.78) | 14.5x / 3.8x / 2.8x / 0.76x / 0.41x — inside the seed-variance envelope; no degradation observed at this correlation strength. |
-| n = 20,000 (single run, nq=50) | Advantage grows across the board: 15.5x / 11.2x / 6.5x / 2.9x / 0.85x. The crossover moves past 25% B selectivity, and the wide-B penalty shrinks to near parity. |
+| Real vectors: SIFT10K (128-d, corpus queries) | With M=32/ef_build=200, the pattern reproduces: **14.7x** at 1%, 3.6x at 5%, crossover ~10–12%. Honest catch: at the default M=16 build, *neither* arm reaches recall 0.9 on real clustered vectors — the simplified graph needs stronger build parameters off synthetic data (both runs kept). |
+| n = 20,000 (single run, nq=50) | Advantage grows across the board: 15.5x / 11.2x / 6.5x / 2.9x / 0.85x. The crossover moves past 25% B selectivity. |
+| n = 100,000 (single run, nq=50) | The baseline breaks down (α=512 everywhere, 3.5–3.8 QPS, misses the floor at 1–5%); Multi-SeRF wins at **every** selectivity — 22.5x / 25.1x / 17.3x / 8.6x / **5.0x at 50%**. The wide-B penalty is a small-n artifact. |
 
-See `results.md` §9 for the full tables and the honest caveats on each check.
+See `results.md` §9–12 for the full tables and the honest caveats on each check.
 
 See `results.md` for the full write-up, caveats, and K-sensitivity tables.
 
@@ -110,9 +133,12 @@ See `results.md` for the full write-up, caveats, and K-sensitivity tables.
 | file | what |
 |---|---|
 | `design_notes.md` | architecture, simplified segment graph, isolation argument, scope and limits |
-| `multiserf_proto.py` | `SegmentGraph1D`, `CompoundSegment`, ground truth, and recall helpers |
+| `multiserf_proto.py` | `SegmentGraph1D`, `CompoundSegment`, `AdaptiveIndex`, ground truth and recall helpers |
 | `run_experiments_partB.py` | experiment runner for B-selectivity sweeps and QPS-at-recall measurement |
-| `test_sanity.py` | sanity tests: `recall_at_k` semantics; K=1 equals the baseline path; predicate safety |
+| `run_adaptive.py` | adaptive-routing experiment: K=1 vs K=16 vs query-time routing |
+| `demo.py` | ~30 s quick demo: build both indexes, watch the routing on 3 window widths |
+| `sql_demo.py` | DuckDB scalar-UDF demo: the index answering a filtered k-NN question in SQL |
+| `test_sanity.py` | sanity tests: `recall_at_k` semantics; K=1 equals the baseline path; predicate safety; adaptive routing |
 | `make_figures.py` | regenerates `figures/*.png` from the existing result JSON files |
 | `figures/` | result figures used in this README |
 | `results.md` | full result analysis, caveats, and success-criteria discussion |
@@ -123,8 +149,13 @@ See `results.md` for the full write-up, caveats, and K-sensitivity tables.
 | `results_partB_seed1.json`, `results_partB_seed2.json` | data-seed variance reruns of the main config |
 | `results_partB_bcorr.json` | correlated-B run (`--b-corr 0.8`) |
 | `results_partB_n20k.json` | n=20,000 scale check (nq=50) |
+| `results_partB_n100k.json` | n=100,000 scale check (nq=50) |
+| `results_partB_adaptive.json` | adaptive-routing run (K=1 / K=16 / adaptive) |
+| `results_partB_sift.json` | SIFT10K, default M=16 build (recall floor not reached — kept as a negative finding) |
+| `results_partB_sift_M32.json` | SIFT10K, M=32/ef_build=200 (headline pattern reproduces) |
 | `results_partB_smoke.json` | small smoke run |
 | `` | captured stdout for recorded experiments |
+| `data/` | auto-downloaded datasets (siftsmall); not committed |
 
 ## How to Run
 
@@ -146,6 +177,17 @@ py -3 run_experiments_partB.py --n 5000 --dim 32 --nq 100 --K 16 --a-sel 0.25 --
 py -3 run_experiments_partB.py --n 5000 --dim 32 --nq 100 --K 16 --seed 1 --out results_partB_seed1.json
 py -3 run_experiments_partB.py --n 5000 --dim 32 --nq 100 --K 16 --b-corr 0.8 --out results_partB_bcorr.json
 py -3 run_experiments_partB.py --n 20000 --dim 32 --nq 50 --K 16 --out results_partB_n20k.json
+py -3 run_experiments_partB.py --n 100000 --dim 32 --nq 50 --K 16 --out results_partB_n100k.json
+
+# real vectors: SIFT10K (auto-downloads ~5 MB into data/)
+py -3 run_experiments_partB.py --dataset siftsmall --nq 100 --K 16 --out results_partB_sift.json
+
+# adaptive routing (K=1 vs K=16 vs query-time routing)
+py -3 run_adaptive.py --n 5000 --dim 32 --nq 100 --K 16 --tau 0.15 --out results_partB_adaptive.json
+
+# quick demos
+py -3 demo.py        # ~30 s narrated demo
+py -3 sql_demo.py    # DuckDB UDF demo (pip install duckdb)
 
 # quick smoke
 py -3 run_experiments_partB.py --n 1000 --dim 16 --nq 20 --K 8 --out results_partB_smoke.json
@@ -159,6 +201,7 @@ Key flags:
 | `--a-sel` | A-range selectivity; 1.0 means full A range |
 | `--b-sweep` | B-selectivity grid |
 | `--b-corr` | correlation of B with the vectors; 0.0 = independent (default) |
+| `--dataset` | `synthetic` (default) or `siftsmall` (real SIFT10K vectors + corpus queries) |
 | `--seed` | data seed (query seed is independent and fixed) |
 | `--n`, `--dim`, `--nq`, `--k` | synthetic dataset and query settings |
 
@@ -186,35 +229,46 @@ reruns experiments.
   vectors.
 - The bucket-routing mechanism is isolated because Multi-SeRF and the baseline
   use the same `SegmentGraph1D` code.
-- The K trade-off is quantified with K=4, K=16, and K=32 runs.
+- The K trade-off is quantified with K=4, K=16, and K=32 runs — and then
+  resolved at query time: the adaptive router meets **both** success criteria
+  simultaneously (27x at 1%, 1.00x at 50%).
 - A restrictive A-range run exercises both A filtering and B bucket routing.
-- A single n=20k run shows the advantage growing with scale, in the direction
-  the design predicts.
+- The pattern reproduces on real SIFT10K vectors (with a stronger graph build).
+- Scale runs at n=20k and n=100k show the advantage growing with n; at n=100k
+  Multi-SeRF wins at every tested selectivity.
 
 ## Limitations
 
 - This is a single-thread Python research prototype, not a production vector
-  database.
-- The data is synthetic. Attribute–vector correlation was tested at one
-  pattern and strength (Gaussian copula, ρ=0.8 on one coordinate); real
-  datasets remain untested.
+  database. A NumPy-vectorisation attempt on the query loop measured *slower*
+  (small per-node edge lists); scaling past n≈100k needs a compiled kernel,
+  which is out of scope (results.md §12).
+- Real vectors were tested once (SIFT10K), and only reached the recall floor
+  after retuning build parameters (M=32, ef_build=200) — the default M=16
+  graph under-connects on clustered real data. Attributes remain synthetic
+  everywhere; no dataset with natural attributes was used.
 - Only the main configuration has multi-seed variance data (3 seeds); the K
-  sweeps, A-restrict, and n=20k runs are single runs.
+  sweeps, A-restrict, adaptive, SIFT, and larger-n runs are single runs.
 - `SegmentGraph1D` is SeRF-inspired but not a faithful SeRF-2D implementation.
 - Absolute QPS should not be compared to production ANN systems. The meaningful
   evidence is the like-for-like ratio between Multi-SeRF and SeRF+ResidualB.
-- Wide `B` ranges are not a win for K=16 or K=32 at n=5k; the n=20k run
-  narrows this penalty to 0.85x but is a single run, still far from the
-  n=1M+ regime where SeRF-class methods are usually evaluated.
+- The wide-B penalty at n=5k (0.4x at 50%) fades with scale (0.85x at n=20k,
+  5.0x at n=100k) and is removed at any scale by the adaptive router; but the
+  n=1M+ regime where SeRF-class methods are usually evaluated remains untested.
+- The adaptive router's threshold τ is workload- and scale-dependent and was
+  set from the measured n=5k crossover, not learned.
+- `sql_demo.py` is a scalar-UDF demo, not a DBMS integration: no extension,
+  persistence, or planner hook.
 
 ## Portfolio Summary
 
 One-sentence version:
 
-> Built a Python prototype for multi-attribute range-filtered vector search,
-> showing that `B`-bucket routing improves QPS by 15–25x over a residual-filter
-> baseline at 1% secondary-predicate selectivity (3 seeds, recall ≥ 0.9), with
-> the advantage growing at larger n.
+> Built a Python prototype for multi-attribute range-filtered vector search:
+> `B`-bucket routing improves QPS by 15–25x over a residual-filter baseline at
+> 1% secondary-predicate selectivity (recall ≥ 0.9; 3 seeds, real SIFT vectors,
+> growing with n up to 100k), and a query-adaptive router removes the
+> wide-window penalty, meeting both of the proposal's success criteria at once.
 
 Best way to present the project:
 

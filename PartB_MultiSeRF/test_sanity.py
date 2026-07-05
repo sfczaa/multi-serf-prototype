@@ -100,6 +100,30 @@ def test_query_respects_both_range_predicates():
             assert b_lo <= b[g] <= b_hi
 
 
+def test_adaptive_estimate_and_routing():
+    # the adaptive index must (a) estimate s_B in the right decade from bucket
+    # metadata alone and (b) return byte-identical results to whichever arm it
+    # routes to — it adds routing, never a third behaviour
+    X, a, b = _small_dataset()
+    cs1 = ms.CompoundSegment(X, a, b, K=1, M=8, ef=32)
+    csK = ms.CompoundSegment(X, a, b, K=8, M=8, ef=32)
+    ai = ms.AdaptiveIndex(cs1, csK, tau=0.15)
+
+    assert abs(ai.estimate_sb(0.0, 1.0) - 1.0) < 1e-9
+    assert 0.02 <= ai.estimate_sb(0.40, 0.45) <= 0.10   # ~5% window
+
+    q = np.random.default_rng(5).standard_normal(X.shape[1]).astype(np.float32)
+    ids, ds, vb, used = ai.query(q, 0.0, 1.0, 0.40, 0.45, k=5, alpha=4.0, ef=64)
+    ids2, ds2, vb2 = csK.query(q, 0.0, 1.0, 0.40, 0.45, 5, alpha=4.0, ef=64)
+    assert used is True
+    assert (ids, ds, vb) == (ids2, ds2, vb2)
+
+    ids, ds, vb, used = ai.query(q, 0.0, 1.0, 0.05, 0.95, k=5, alpha=4.0, ef=64)
+    ids2, ds2, vb2 = cs1.query(q, 0.0, 1.0, 0.05, 0.95, 5, alpha=4.0, ef=64)
+    assert used is False
+    assert (ids, ds, vb) == (ids2, ds2, vb2)
+
+
 def test_gen_data_bcorr_zero_reproduces_recorded_stream():
     # every recorded results_partB_*.json depends on this exact RNG stream;
     # the --b-corr feature must not perturb the default path
