@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-SeRF Bucket Routing — Visual Demo</title>
+<style>
+  :root {
+    --page:        #f9f9f7;
+    --surface:     #fcfcfb;
+    --ink:         #0b0b0b;
+    --ink-2:       #52514e;
+    --muted:       #898781;
+    --grid:        #e1e0d9;
+    --axisline:    #c3c2b7;
+    --border:      rgba(11, 11, 11, 0.10);
+    --accent:      #2a78d6;
+    --accent-dim:  #b7d3f6;
+    --accent-wash: rgba(42, 120, 214, 0.10);
+    --window-wash: rgba(11, 11, 11, 0.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page:        #0d0d0d;
+      --surface:     #1a1a19;
+      --ink:         #ffffff;
+      --ink-2:       #c3c2b7;
+      --muted:       #898781;
+      --grid:        #2c2c2a;
+      --axisline:    #383835;
+      --border:      rgba(255, 255, 255, 0.10);
+      --accent:      #3987e5;
+      --accent-dim:  #1c5cab;
+      --accent-wash: rgba(57, 135, 229, 0.14);
+      --window-wash: rgba(255, 255, 255, 0.06);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  main { max-width: 1060px; margin: 0 auto; padding: 32px 20px 56px; }
+  h1 { font-size: 24px; font-weight: 650; margin: 0 0 4px; }
+  h2 { font-size: 17px; font-weight: 650; margin: 36px 0 4px; }
+  h3 { font-size: 14px; font-weight: 650; margin: 0 0 2px; }
+  .sub { color: var(--ink-2); margin: 0 0 6px; }
+  .fineprint { color: var(--muted); font-size: 12.5px; margin: 4px 0 0; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px 12px;
+  }
+
+  /* ---- filter row ---- */
+  .controls {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+    margin: 20px 0 16px;
+  }
+  .presets { display: flex; gap: 6px; align-items: center; }
+  .presets .lbl { color: var(--ink-2); font-size: 13px; margin-right: 4px; }
+  .presets button {
+    font: inherit; font-size: 13.5px; color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 5px 13px;
+    cursor: pointer;
+  }
+  .presets button:hover { border-color: var(--muted); }
+  .presets button[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--accent-wash);
+    font-weight: 650;
+  }
+  .posctl { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 13px; }
+  .posctl input { accent-color: var(--accent); width: 180px; }
+
+  /* ---- legend ---- */
+  .legend { display: flex; flex-wrap: wrap; gap: 18px; margin: 0 0 10px; font-size: 13px; color: var(--ink-2); }
+  .legend .item { display: flex; align-items: center; gap: 6px; }
+  .swatch-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .swatch-box { width: 12px; height: 12px; display: inline-block; border: 1px solid var(--axisline); background: var(--window-wash); }
+
+  /* ---- panels ---- */
+  .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .panels { grid-template-columns: 1fr; } }
+  .panel svg { display: block; width: 100%; height: auto; }
+  .caption { color: var(--ink-2); font-size: 13px; margin: 8px 0 0; min-height: 3.2em; }
+  .caption strong { color: var(--ink); font-weight: 650; }
+
+  /* ---- stat tiles ---- */
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 16px; }
+  @media (max-width: 860px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+  .tile .label { color: var(--ink-2); font-size: 12.5px; }
+  .tile .value { font-size: 26px; font-weight: 650; margin: 2px 0 0; }
+  .tile .note  { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+  /* ---- bar chart ---- */
+  .chartwrap { overflow-x: auto; }
+  #barchart { display: block; width: 100%; max-width: 760px; height: auto; margin: 6px auto 0; }
+  #barchart .hit { cursor: pointer; }
+  #barchart .hit:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+  /* ---- table view ---- */
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; margin-top: 8px; }
+  th, td { text-align: right; padding: 6px 12px; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--ink-2); font-weight: 600; border-bottom: 1px solid var(--axisline); }
+  tr.active td { background: var(--accent-wash); }
+
+  /* ---- tooltip ---- */
+  #tooltip {
+    position: fixed; z-index: 10; display: none; pointer-events: none;
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--border); border-radius: 7px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+    padding: 7px 10px; font-size: 12.5px; line-height: 1.45; max-width: 280px;
+  }
+  #tooltip .tt-title { font-weight: 650; }
+  #tooltip .tt-sub { color: var(--ink-2); }
+
+  button, input { touch-action: manipulation; }
+  svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  @media (prefers-reduced-motion: no-preference) {
+    .presets button, #barchart path, #barchart text, .panel rect, .panel circle { transition: all 140ms ease-out; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Multi-SeRF bucket routing — visual demo</h1>
+  <p class="sub">
+    Filtered vector search: <em>nearest vectors to q where B ∈ [b_lo, b_hi]</em>.
+    The baseline searches one graph over everything and discards out-of-window results;
+    Multi-SeRF partitions the data into K=16 buckets on B and searches only the buckets the window overlaps.
+  </p>
+  <p class="fineprint">
+    The dot geometry below is an illustrative sample. Every performance number on this page is taken
+    unchanged from the recorded headline run (<code>results_partB_main.json</code>: n=5,000, dim=32,
+    nq=100, K=16, QPS at recall ≥ 0.9); seed ranges are from <code>results.md</code> §9.
+  </p>
+
+  <div class="controls">
+    <div class="presets" id="presets" role="group" aria-label="B selectivity">
+      <span class="lbl">B selectivity</span>
+    </div>
+    <label class="posctl">
+      window position
+      <input type="range" id="posSlider" min="0" max="1000" value="470" aria-label="query window position along B">
+    </label>
+  </div>
+
+  <div class="legend">
+    <span class="item"><span class="swatch-dot" style="background:var(--accent)"></span> searched by graph traversal</span>
+    <span class="item"><span class="swatch-dot" style="background:var(--muted); opacity:.55"></span> never touched</span>
+    <span class="item"><span class="swatch-box"></span> query B window</span>
+  </div>
+
+  <div class="panels">
+    <div class="card panel">
+      <h3>Baseline: SeRF + ResidualB — one graph, filter afterwards</h3>
+      <svg id="svgBase" viewBox="0 0 460 236" role="img" aria-label="Baseline schematic: a single graph spans all points; the query window covers only a narrow band"></svg>
+      <p class="caption" id="capBase"></p>
+    </div>
+    <div class="card panel">
+      <h3>Multi-SeRF: route to overlapping B-buckets, then search</h3>
+      <svg id="svgMS" viewBox="0 0 460 236" role="img" aria-label="Multi-SeRF schematic: 16 buckets along B; only buckets overlapping the query window are searched"></svg>
+      <p class="caption" id="capMS"></p>
+    </div>
+  </div>
+
+  <div class="tiles">
+    <div class="card tile">
+      <div class="label">Buckets searched (this window)</div>
+      <div class="value" id="tileBuckets"></div>
+      <div class="note" id="tileBucketsNote"></div>
+    </div>
+    <div class="card tile">
+      <div class="label">Data reachable by the search</div>
+      <div class="value" id="tileShare"></div>
+      <div class="note">baseline: 100% — a single graph spans all points</div>
+    </div>
+    <div class="card tile">
+      <div class="label">Over-fetch α at recall ≥ 0.9 (recorded)</div>
+      <div class="value" id="tileAlpha"></div>
+      <div class="note">Multi-SeRF vs baseline</div>
+    </div>
+    <div class="card tile">
+      <div class="label">QPS ratio (recorded)</div>
+      <div class="value" id="tileRatio"></div>
+      <div class="note" id="tileRatioNote"></div>
+    </div>
+  </div>
+
+  <h2>QPS at recall ≥ 0.9 — Multi-SeRF over SeRF+ResidualB</h2>
+  <p class="sub" style="font-size:13px">
+    Recorded headline run; whiskers are min–max over 3 data seeds; log scale. Click a bar to update the schematic.
+  </p>
+  <div class="card chartwrap">
+    <svg id="barchart" viewBox="0 0 760 300" role="img" aria-label="Bar chart of the recorded QPS ratio by B selectivity, log scale, with seed whiskers and a parity line at 1x"></svg>
+  </div>
+
+  <h2>Table view (recorded values)</h2>
+  <table id="dataTable" aria-label="Recorded QPS, over-fetch, and routed-bucket values by B selectivity">
+    <thead>
+      <tr>
+        <th>B selectivity</th>
+        <th>baseline QPS (α)</th>
+        <th>Multi-SeRF QPS (α)</th>
+        <th>QPS ratio</th>
+        <th>ratio over 3 seeds</th>
+        <th>mean routed buckets</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <p class="fineprint" style="margin-top:18px">
+    Honest notes: B is uniform in this run, so the equal-frequency buckets are also visually equal-width.
+    The wide-window slowdown (0.65x at 25%, 0.43x at 50%) is real at n=5k — a query-adaptive router
+    removes it (27.3x at 1% <em>and</em> 1.00x at 50%; <code>results.md</code> §10), and it fades with
+    scale (§12). Full write-up, caveats, and reproduction commands: <code>README.md</code> and
+    <code>results.md</code> in this directory.
+  </p>
+</main>
+
+<div id="tooltip" role="presentation"></div>
+
+<script>
+"use strict";
+
+/* All performance numbers below are copied from results_partB_main.json
+   (QPS rounded to 1 decimal as in README.md); seedLo/seedHi from results.md §9. */
+const K = 16;
+const CELLS = [
+  { s: 0.01, label: "1%",  base: { alpha: 256, qps: 25.4  }, ms: { alpha: 8, qps: 623.6, meanBuckets: 1.14 }, ratio: "24.6x", ratioVal: 24.6, seedLo: 15.1, seedHi: 24.6 },
+  { s: 0.05, label: "5%",  base: { alpha: 32,  qps: 142.8 }, ms: { alpha: 2, qps: 506.4, meanBuckets: 1.74 }, ratio: "3.55x", ratioVal: 3.55, seedLo: 3.5,  seedHi: 4.0  },
+  { s: 0.10, label: "10%", base: { alpha: 32,  qps: 154.3 }, ms: { alpha: 1, qps: 323.3, meanBuckets: 2.56 }, ratio: "2.10x", ratioVal: 2.10, seedLo: 2.1,  seedHi: 2.7  },
+  { s: 0.25, label: "25%", base: { alpha: 16,  qps: 300.8 }, ms: { alpha: 1, qps: 196.1, meanBuckets: 5.0  }, ratio: "0.65x", ratioVal: 0.65, seedLo: 0.65, seedHi: 0.76 },
+  { s: 0.50, label: "50%", base: { alpha: 16,  qps: 281.8 }, ms: { alpha: 1, qps: 119.8, meanBuckets: 8.96 }, ratio: "0.43x", ratioVal: 0.43, seedLo: 0.38, seedHi: 0.43 },
+];
+
+const state = { cell: 0, center: 0.47 };
+
+/* deterministic dots (illustrative sample, not the dataset) */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rand = mulberry32(20260706);
+const DOTS = Array.from({ length: 240 }, () => ({ x: rand(), y: rand() }));
+
+/* ---------- geometry ---------- */
+function windowRange() {
+  const s = CELLS[state.cell].s;
+  const c = Math.min(1 - s / 2, Math.max(s / 2, state.center));
+  return [c - s / 2, c + s / 2];
+}
+function routedBuckets(lo, hi) {
+  const out = [];
+  for (let i = 0; i < K; i++) {
+    if (i / K < hi && (i + 1) / K > lo) out.push(i);
+  }
+  return out;
+}
+
+/* ---------- schematic panels ---------- */
+const P = { x0: 10, y0: 12, w: 440, h: 184 };
+
+function svgWindowBand(lo, hi, label) {
+  const x = P.x0 + lo * P.w, wdt = Math.max(2, (hi - lo) * P.w);
+  const lx = Math.min(P.x0 + P.w - 34, Math.max(P.x0 + 34, x + wdt / 2));
+  return `
+    <rect x="${x.toFixed(1)}" y="${P.y0}" width="${wdt.toFixed(1)}" height="${P.h}" fill="var(--window-wash)"/>
+    <line x1="${x.toFixed(1)}" y1="${P.y0}" x2="${x.toFixed(1)}" y2="${P.y0 + P.h}" stroke="var(--axisline)" stroke-width="1"/>
+    <line x1="${(x + wdt).toFixed(1)}" y1="${P.y0}" x2="${(x + wdt).toFixed(1)}" y2="${P.y0 + P.h}" stroke="var(--axisline)" stroke-width="1"/>
+    <text x="${lx.toFixed(1)}" y="${P.y0 - 3}" text-anchor="middle" font-size="11" fill="var(--ink-2)">${label} window</text>`;
+}
+function svgAxis() {
+  return `
+    <line x1="${P.x0}" y1="${P.y0 + P.h + 4}" x2="${P.x0 + P.w}" y2="${P.y0 + P.h + 4}" stroke="var(--axisline)" stroke-width="1"/>
+    <text x="${P.x0 + P.w / 2}" y="${P.y0 + P.h + 22}" text-anchor="middle" font-size="11.5" fill="var(--muted)">attribute B →</text>`;
+}
+function svgDots(isTouched) {
+  let s = "";
+  for (const d of DOTS) {
+    const cx = (P.x0 + d.x * P.w).toFixed(1), cy = (P.y0 + 6 + d.y * (P.h - 12)).toFixed(1);
+    s += isTouched(d)
+      ? `<circle cx="${cx}" cy="${cy}" r="3" fill="var(--accent)" stroke="var(--surface)" stroke-width="1.4"/>`
+      : `<circle cx="${cx}" cy="${cy}" r="2.5" fill="var(--muted)" opacity="0.45"/>`;
+  }
+  return s;
+}
+
+function renderPanels() {
+  const cell = CELLS[state.cell];
+  const [lo, hi] = windowRange();
+  const routed = routedBuckets(lo, hi);
+  const routedSet = new Set(routed);
+
+  document.getElementById("svgBase").innerHTML =
+    svgDots(() => true) + svgWindowBand(lo, hi, cell.label) + svgAxis();
+
+  let bands = "";
+  for (let i = 0; i < K; i++) {
+    const bx = P.x0 + (i * P.w) / K + 1, bw = P.w / K - 2;
+    bands += `<rect class="bucket" data-i="${i}" x="${bx.toFixed(1)}" y="${P.y0}" width="${bw.toFixed(1)}" height="${P.h}"
+      fill="${routedSet.has(i) ? "var(--accent-wash)" : "transparent"}"/>`;
+  }
+  document.getElementById("svgMS").innerHTML =
+    bands +
+    svgDots(d => routedSet.has(Math.min(K - 1, Math.floor(d.x * K)))) +
+    svgWindowBand(lo, hi, cell.label) + svgAxis();
+
+  for (const r of document.querySelectorAll("#svgMS .bucket")) {
+    const i = +r.dataset.i;
+    bindTooltip(r, () =>
+      `<div class="tt-title">bucket ${i + 1} of ${K} — ${routedSet.has(i) ? "routed (searched)" : "skipped"}</div>
+       <div class="tt-sub">B ∈ [${(i / K).toFixed(4)}, ${((i + 1) / K).toFixed(4)})</div>`);
+  }
+
+  const pct = ((routed.length / K) * 100).toFixed(0);
+  document.getElementById("capBase").innerHTML =
+    `The single graph spans <strong>all points</strong>; B is enforced only by discarding results after traversal.
+     Recorded cost at ${cell.label}: over-fetch <strong>α=${cell.base.alpha}</strong> to reach recall ≥ 0.9 → <strong>${cell.base.qps} QPS</strong>.`;
+  document.getElementById("capMS").innerHTML =
+    `Only overlapping buckets are searched. This window: <strong>${routed.length} of ${K}</strong> buckets
+     (~${pct}% of the data). Recorded at ${cell.label}: mean ${cell.ms.meanBuckets} buckets,
+     <strong>α=${cell.ms.alpha}</strong> → <strong>${cell.ms.qps} QPS</strong>.`;
+
+  document.getElementById("tileBuckets").textContent = `${routed.length} / ${K}`;
+  document.getElementById("tileBucketsNote").textContent =
+    `recorded mean over 100 queries: ${cell.ms.meanBuckets}`;
+  document.getElementById("tileShare").textContent = `~${pct}%`;
+  document.getElementById("tileAlpha").textContent = `${cell.ms.alpha} vs ${cell.base.alpha}`;
+  document.getElementById("tileRatio").textContent = cell.ratio;
+  document.getElementById("tileRatioNote").textContent =
+    `${cell.seedLo}–${cell.seedHi}x over 3 data seeds`;
+}
+
+/* ---------- bar chart (log scale, parity line, seed whiskers) ---------- */
+const C = { l: 56, r: 60, t: 26, b: 40, W: 760, H: 300 };
+const LOGMIN = Math.log10(0.3), LOGMAX = Math.log10(32);
+function yOf(v) {
+  const f = (Math.log10(v) - LOGMIN) / (LOGMAX - LOGMIN);
+  return C.t + (1 - f) * (C.H - C.t - C.b);
+}
+
+function renderBars() {
+  const innerW = C.W - C.l - C.r, slot = innerW / CELLS.length, yBot = C.H - C.b;
+  let s = "";
+  for (const g of [0.5, 2, 5, 10, 20]) {
+    s += `<line x1="${C.l}" y1="${yOf(g).toFixed(1)}" x2="${C.W - C.r}" y2="${yOf(g).toFixed(1)}" stroke="var(--grid)" stroke-width="1"/>
+          <text x="${C.l - 8}" y="${(yOf(g) + 4).toFixed(1)}" text-anchor="end" font-size="11.5" fill="var(--muted)">${g}x</text>`;
+  }
+  s += `<line x1="${C.l}" y1="${yOf(1).toFixed(1)}" x2="${C.W - C.r}" y2="${yOf(1).toFixed(1)}" stroke="var(--axisline)" stroke-width="1.5"/>
+        <text x="${C.l - 8}" y="${(yOf(1) + 4).toFixed(1)}" text-anchor="end" font-size="11.5" fill="var(--muted)">1x</text>
+        <text x="${C.W - C.r + 8}" y="${(yOf(1) + 4).toFixed(1)}" font-size="11.5" fill="var(--ink-2)">parity</text>`;
+
+  CELLS.forEach((cell, i) => {
+    const cx = C.l + slot * (i + 0.5), active = i === state.cell;
+    const x = cx - 12, yTop = yOf(cell.ratioVal);
+    s += `<path d="M ${x.toFixed(1)} ${yBot} L ${x.toFixed(1)} ${(yTop + 4).toFixed(1)} Q ${x.toFixed(1)} ${yTop.toFixed(1)} ${(x + 4).toFixed(1)} ${yTop.toFixed(1)}
+           L ${(x + 20).toFixed(1)} ${yTop.toFixed(1)} Q ${(x + 24).toFixed(1)} ${yTop.toFixed(1)} ${(x + 24).toFixed(1)} ${(yTop + 4).toFixed(1)} L ${(x + 24).toFixed(1)} ${yBot} Z"
+           fill="${active ? "var(--accent)" : "var(--accent-dim)"}"/>`;
+    const yLoW = yOf(cell.seedLo), yHiW = yOf(cell.seedHi);
+    s += `<line x1="${cx}" y1="${yLoW.toFixed(1)}" x2="${cx}" y2="${yHiW.toFixed(1)}" stroke="var(--ink-2)" stroke-width="1.5"/>
+          <line x1="${cx - 4}" y1="${yLoW.toFixed(1)}" x2="${cx + 4}" y2="${yLoW.toFixed(1)}" stroke="var(--ink-2)" stroke-width="1.5"/>
+          <line x1="${cx - 4}" y1="${yHiW.toFixed(1)}" x2="${cx + 4}" y2="${yHiW.toFixed(1)}" stroke="var(--ink-2)" stroke-width="1.5"/>`;
+    const yLab = Math.min(yTop, yHiW) - 9;
+    s += `<text x="${cx}" y="${yLab.toFixed(1)}" text-anchor="middle" font-size="12"
+           font-weight="${active ? 650 : 400}" fill="${active ? "var(--ink)" : "var(--ink-2)"}">${cell.ratio}</text>`;
+    s += `<text x="${cx}" y="${yBot + 20}" text-anchor="middle" font-size="12.5"
+           font-weight="${active ? 650 : 400}" fill="${active ? "var(--ink)" : "var(--muted)"}">${cell.label}</text>`;
+    s += `<rect class="hit" data-i="${i}" x="${(C.l + slot * i).toFixed(1)}" y="${C.t}" width="${slot.toFixed(1)}" height="${(yBot - C.t + 26).toFixed(1)}"
+           fill="transparent" tabindex="0" role="button"
+           aria-label="B selectivity ${cell.label}: ratio ${cell.ratio}. Select."/>`;
+  });
+  s += `<line x1="${C.l}" y1="${yBot}" x2="${C.W - C.r}" y2="${yBot}" stroke="var(--axisline)" stroke-width="1"/>
+        <text x="${C.l + innerW / 2}" y="${C.H - 4}" text-anchor="middle" font-size="11.5" fill="var(--muted)">B-window selectivity</text>`;
+
+  const svg = document.getElementById("barchart");
+  svg.innerHTML = s;
+  for (const hit of svg.querySelectorAll(".hit")) {
+    const i = +hit.dataset.i, cell = CELLS[i];
+    hit.addEventListener("click", () => selectCell(i));
+    hit.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectCell(i); } });
+    bindTooltip(hit, () =>
+      `<div class="tt-title">s_B = ${cell.label} — ratio ${cell.ratio} (${cell.seedLo}–${cell.seedHi}x over 3 seeds)</div>
+       <div class="tt-sub">baseline ${cell.base.qps} QPS (α=${cell.base.alpha}) · Multi-SeRF ${cell.ms.qps} QPS (α=${cell.ms.alpha})</div>`);
+  }
+}
+
+/* ---------- table ---------- */
+function renderTable() {
+  document.querySelector("#dataTable tbody").innerHTML = CELLS.map((c, i) => `
+    <tr class="${i === state.cell ? "active" : ""}">
+      <td>${c.label}</td>
+      <td>${c.base.qps} (α=${c.base.alpha})</td>
+      <td>${c.ms.qps} (α=${c.ms.alpha})</td>
+      <td>${c.ratio}</td>
+      <td>${c.seedLo}–${c.seedHi}x</td>
+      <td>${c.ms.meanBuckets} / ${K}</td>
+    </tr>`).join("");
+}
+
+/* ---------- tooltip ---------- */
+const tip = document.getElementById("tooltip");
+function bindTooltip(el, html) {
+  el.addEventListener("mousemove", e => {
+    tip.innerHTML = html();
+    tip.style.display = "block";
+    const pad = 14, r = tip.getBoundingClientRect();
+    tip.style.left = Math.min(window.innerWidth - r.width - 8, e.clientX + pad) + "px";
+    tip.style.top = Math.min(window.innerHeight - r.height - 8, e.clientY + pad) + "px";
+  });
+  el.addEventListener("mouseleave", () => { tip.style.display = "none"; });
+}
+
+/* ---------- controls ---------- */
+function selectCell(i) {
+  state.cell = i;
+  for (const b of document.querySelectorAll("#presets button")) {
+    b.setAttribute("aria-pressed", String(+b.dataset.i === i));
+  }
+  renderPanels(); renderBars(); renderTable();
+}
+
+const presets = document.getElementById("presets");
+CELLS.forEach((c, i) => {
+  const b = document.createElement("button");
+  b.textContent = c.label;
+  b.dataset.i = i;
+  b.setAttribute("aria-pressed", String(i === state.cell));
+  b.addEventListener("click", () => selectCell(i));
+  presets.appendChild(b);
+});
+document.getElementById("posSlider").addEventListener("input", e => {
+  state.center = +e.target.value / 1000;
+  renderPanels();
+});
+
+selectCell(0);
+</script>
+</body>
+</html>

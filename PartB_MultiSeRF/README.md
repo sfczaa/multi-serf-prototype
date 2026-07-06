@@ -22,6 +22,12 @@ py -3 demo.py       # ~30 s narrated demo of the routing mechanism (needs only n
 py -3 sql_demo.py   # filtered k-NN in DuckDB SQL (additionally needs duckdb and pandas)
 ```
 
+There is also a browser-only visual demo of the routing mechanism: open
+[`demo_visual.html`](demo_visual.html) locally in a browser (single file, no
+dependencies, no data download). The schematic is illustrative; every
+performance number it shows is copied from the recorded headline run
+(`results_partB_main.json`).
+
 ## Why This Matters
 
 Approximate nearest-neighbor (ANN) indexes are good at vector similarity, but
@@ -140,6 +146,7 @@ See `results.md` for the full write-up, caveats, and K-sensitivity tables.
 | `run_mixed_workload.py` | mixed-selectivity stream, one shared α per index (K=1/4/16/adaptive) |
 | `demo.py` | ~30 s quick demo: build both indexes, watch the routing on 3 window widths |
 | `sql_demo.py` | DuckDB scalar-UDF demo: the index answering a filtered k-NN question in SQL |
+| `demo_visual.html` | browser-only visual demo of bucket routing (open locally; numbers from the recorded headline run) |
 | `test_sanity.py` | sanity tests: `recall_at_k` semantics; K=1 equals the baseline path; predicate safety; adaptive routing |
 | `make_figures.py` | regenerates `figures/*.png` from the existing result JSON files |
 | `figures/` | result figures used in this README |
