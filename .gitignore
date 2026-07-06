@@ -9,6 +9,7 @@ PartB_MultiSeRF/data/
 # local tooling / personal config — not part of the published project
 
 # personal working notes (zh-TW) — kept local only
+~$*.docx
 *.log
 *.docx
 *.docm

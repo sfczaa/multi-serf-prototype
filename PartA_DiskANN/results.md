@@ -8,16 +8,12 @@ Hardware: laptop, single-thread Python 3.12.7, NumPy 2.1.2. No SIMD, no Numba JI
 absolute latencies are Python-overhead-bound and should be read in *ratios*, not
 absolute milliseconds.
 
-Dataset: standard normal Gaussian only. We did **not** run on SIFT, GIST, or any
-real ANN benchmark. A SIFT loader (`load_sift` / `load_fvecs` in
-`run_experiments.py`, plus a `--dataset sift` flag) has been added since the
-older runs, but no SIFT results have been collected or recorded yet. Gaussian
-may be harder for graph ANN than SIFT (no cluster structure), but treating the
-numbers below as a "pessimistic floor" for SIFT is speculation until verified.
-
-> **Update 2026-07-06:** a siftsmall run has since been recorded — see §8.
-> The "Gaussian is harder" hypothesis held: recall@10 = 0.998 at L=64 on
-> SIFT10K with the same hyperparameters. §1–§5 below are unchanged.
+Datasets: the original sections 1-5 use standard normal Gaussian vectors. A
+real SIFT10K run was added on 2026-07-06; see section 8. The contrast is useful:
+the held-out Gaussian run misses the proposal's 0.95 recall target, while the
+same hyperparameters clear it on clustered SIFT10K (recall@10 = 0.998 at L=64).
+The SIFT result is still a small warm-cache prototype run, not a SIFT1M-scale
+benchmark.
 
 ## 0. Caveats up front (please read before the tables)
 

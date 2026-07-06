@@ -46,8 +46,9 @@ range predicate is selective. It also shows the trade-off honestly: when the
 than a single baseline graph — and then **resolves that trade-off** with a
 query-adaptive router that keeps both indexes and picks per query, reaching
 27x on narrow windows while staying at parity (1.00x) on wide ones. Robustness
-checks (three data seeds, a correlated-B run, real SIFT10K vectors, and larger-n
-runs) are in [PartB_MultiSeRF/results.md](PartB_MultiSeRF/results.md) §9–12.
+checks (three data seeds, a correlated-B run, real SIFT10K vectors, larger-n
+runs, tau sensitivity, and mixed workloads) are in
+[PartB_MultiSeRF/results.md](PartB_MultiSeRF/results.md).
 
 See [PartB_MultiSeRF/README.md](PartB_MultiSeRF/README.md) for the full Part B
 orientation and [PartB_MultiSeRF/results.md](PartB_MultiSeRF/results.md) for
@@ -79,7 +80,7 @@ See [PartA_DiskANN/README.md](PartA_DiskANN/README.md).
 |---|---|
 | `PartB_MultiSeRF/` | Primary portfolio project: multi-attribute range-filtered ANN prototype |
 | `PartA_DiskANN/` | Secondary prototype: on-disk ANN algorithmic kernel |
-| `.github/workflows/ci.yml` | CI: Part B sanity tests + smoke experiment + figure regeneration |
+| `.github/workflows/ci.yml` | CI: Part A/B sanity tests + Part B smoke demos + figure regeneration |
 
 ## Recommended Portfolio Positioning
 
