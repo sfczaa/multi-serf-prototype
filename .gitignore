@@ -11,5 +11,6 @@ PartB_MultiSeRF/data/
 *.docx
 *.docm
 *.rtf
+*日誌*.md
 *journal*.md
 *diary*.md
