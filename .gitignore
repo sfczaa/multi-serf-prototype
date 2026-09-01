@@ -6,10 +6,7 @@ __pycache__/
 # auto-downloaded datasets (see run_experiments_partB.py load_siftsmall)
 PartB_MultiSeRF/data/
 
-# local tooling / personal config — not part of the published project
-
-# personal working notes (zh-TW) — kept local only
-~$*.docx
+# local tooling and generated files — not part of the published project
 *.log
 *.docx
 *.docm

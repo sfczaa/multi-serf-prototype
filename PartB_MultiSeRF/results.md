@@ -1,7 +1,7 @@
 # Part B Prototype — Multi-SeRF Experiment Results
 
 Standalone Python prototype of the **Compound Segment (CS)** structure proposed
-in Part B (`hw4_course_proposal_PartB.pdf`). The CS partitions data on a secondary
+in the accompanying Part B proposal. The CS partitions data on a secondary
 ordered attribute *B* into *K* equal-frequency buckets and builds a simplified,
 SeRF-inspired segment graph (`SegmentGraph1D`) over the primary attribute *A*
 inside each bucket; a query searches only the buckets whose *B*-range overlaps
@@ -40,7 +40,7 @@ the vectors); the real Amazon/Airbnb datasets in the proposal were not used.
 
 ## 1. Headline: B-selectivity sweep (K = 16, full A range)
 
-`results_partB_main.json` / ``. n=5000, dim=32, nq=100, k=10,
+`results_partB_main.json`. n=5000, dim=32, nq=100, k=10,
 M=16, ef_build=64. `α` is the over-fetch needed to reach recall 0.9; `buckets`
 is the mean number of the 16 buckets actually searched.
 
@@ -227,9 +227,9 @@ SeRF+ResidualB, identical code modulo bucketing).
 - `design_notes.md` — architecture, simplified segment graph, isolation argument, scope
 - `multiserf_proto.py` — `SegmentGraph1D` + `CompoundSegment` + ground truth/recall
 - `run_experiments_partB.py` — runner (B-selectivity sweep, QPS-at-recall-0.9)
-- `results_partB_main.json` / `` — headline (K=16, full A)
-- `results_partB_K4.json`, `results_partB_K32.json` + logs — K sensitivity
-- `results_partB_arestrict.json` / `` — restrictive A (25%)
+- `results_partB_main.json` — headline (K=16, full A)
+- `results_partB_K4.json`, `results_partB_K32.json` — K sensitivity
+- `results_partB_arestrict.json` — restrictive A (25%)
 - `results_partB_smoke.json` — n=1k smoke
 - `README.md` — orientation + how to run
 - `results.md` — this file
@@ -302,10 +302,9 @@ i.e. the brute-force gap is also closing with n. `results_partB_n20k.json`.
 
 ### Files added by §9
 
-- `results_partB_seed1.json` / ``, `results_partB_seed2.json` /
-  `` — seed variance
-- `results_partB_bcorr.json` / `` — correlated B (ρ=0.8)
-- `results_partB_n20k.json` / `` — n=20k scale check
+- `results_partB_seed1.json`, `results_partB_seed2.json` — seed variance
+- `results_partB_bcorr.json` — correlated B (ρ=0.8)
+- `results_partB_n20k.json` — n=20k scale check
 
 ---
 
@@ -367,7 +366,7 @@ data. (Multi-SeRF still dominated — higher recall *and* ~14× the QPS — but
 "QPS at recall 0.9" was not measurable.)
 
 **With a stronger build (M=32, ef_build=200) the synthetic story reproduces**
-(`results_partB_sift_M32.json` / ``, both arms ≥0.9 everywhere):
+(`results_partB_sift_M32.json`, both arms ≥0.9 everywhere):
 
 | s_B | SeRF+ResidualB QPS (α, recall) | Multi-SeRF QPS (α, buckets, recall) | ratio |
 |---:|---|---|---:|
@@ -388,7 +387,7 @@ data. (Multi-SeRF still dominated — higher recall *and* ~14× the QPS — but
 
 ## 12. Scale: n = 100,000 (added 2026-07-05)
 
-`results_partB_n100k.json` / `` (nq=50, K=16, single run;
+`results_partB_n100k.json` (nq=50, K=16, single run;
 build: 178 s for K=1, 148 s for K=16, ~52 MB estimated size either way).
 
 | s_B | SeRF+ResidualB QPS (α, recall) | Multi-SeRF QPS (α, buckets, recall) | ratio |
@@ -495,16 +494,14 @@ cannot retune per query class.
 
 ### Files added by §13–14
 
-- `run_adaptive_tau_sweep.py`, `results_partB_adaptive_tau.json` /
-  ``
-- `run_mixed_workload.py`, `results_partB_mixed_workload.json` /
-  ``
+- `run_adaptive_tau_sweep.py`, `results_partB_adaptive_tau.json`
+- `run_mixed_workload.py`, `results_partB_mixed_workload.json`
 
 ### Files added by §10–12
 
-- `run_adaptive.py`, `results_partB_adaptive.json` / ``
-- `results_partB_sift.json` / `` — SIFT10K, default build (recall
+- `run_adaptive.py`, `results_partB_adaptive.json`
+- `results_partB_sift.json` — SIFT10K, default build (recall
   floor not reached; kept as the negative finding)
-- `results_partB_sift_M32.json` / `` — SIFT10K, M=32/ef=200
-- `results_partB_n100k.json` / `` — n=100k scale run
+- `results_partB_sift_M32.json` — SIFT10K, M=32/ef=200
+- `results_partB_n100k.json` — n=100k scale run
 - `demo.py`, `sql_demo.py` — narrated demo and DuckDB scalar-UDF demo

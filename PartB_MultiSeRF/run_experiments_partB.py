@@ -97,11 +97,11 @@ def load_siftsmall(seed: int = 0):
                 member_path = Path(member.name)
                 target = (root / member_path).resolve()
                 if target != root_resolved and root_resolved not in target.parents:
-                    raise ValueError(f\"unsafe archive member path: {member.name}\")
+                    raise ValueError(f"unsafe archive member path: {member.name}")
                 if member.issym() or member.islnk():
-                    raise ValueError(f\"archive links are not allowed: {member.name}\")
+                    raise ValueError(f"archive links are not allowed: {member.name}")
                 if not (member.isdir() or member.isfile()):
-                    raise ValueError(f\"unsupported archive member: {member.name}\")
+                    raise ValueError(f"unsupported archive member: {member.name}")
                 tf.extract(member, root)
     X = _read_fvecs(d / "siftsmall_base.fvecs")
     Q = _read_fvecs(d / "siftsmall_query.fvecs")

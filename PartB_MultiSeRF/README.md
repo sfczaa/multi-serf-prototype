@@ -23,7 +23,7 @@ py -3 sql_demo.py   # filtered k-NN in DuckDB SQL (additionally needs duckdb and
 ```
 
 There is also a browser-only visual demo of the routing mechanism:
-[open the local browser demo](PartB_MultiSeRF/demo_visual.html)
+[open the local browser demo](demo_visual.html)
 (single-file HTML; no dependencies, no data download). The schematic is
 illustrative; every performance number it shows is copied from the recorded
 headline run (`results_partB_main.json`).
@@ -165,7 +165,6 @@ See `results.md` for the full write-up, caveats, and K-sensitivity tables.
 | `results_partB_sift.json` | SIFT10K, default M=16 build (recall floor not reached — kept as a negative finding) |
 | `results_partB_sift_M32.json` | SIFT10K, M=32/ef_build=200 (headline pattern reproduces) |
 | `results_partB_smoke.json` | small smoke run |
-| `` | captured stdout for recorded experiments |
 | `data/` | auto-downloaded datasets (siftsmall); not committed |
 
 ## How to Run

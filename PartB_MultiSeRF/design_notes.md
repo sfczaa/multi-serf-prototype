@@ -1,7 +1,7 @@
 # Part B Prototype — Multi-SeRF Design Notes
 
 > Standalone (not inside any DBMS) prototype of **Multi-SeRF**, the Compound
-> Segment (CS) structure proposed in Part B (`hw4_course_proposal_PartB.pdf`).
+> Segment (CS) structure proposed in the accompanying Part B proposal.
 > The goal is to make the proposal's one load-bearing claim testable on a
 > single machine:
 >

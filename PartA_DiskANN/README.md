@@ -1,7 +1,7 @@
 # DiskANN-style on-disk ANN — Part A prototype
 
 Standalone Python prototype of the on-disk ANN index proposed in Part A
-(`hw4_course_proposal_PartA.pdf`). Builds a two-pass Vamana graph, encodes vectors
+the accompanying Part A proposal. Builds a two-pass Vamana graph, encodes vectors
 with product quantisation, writes everything to a single page-aligned binary
 file, and serves nearest-neighbour queries with PQ-pruned beam search +
 full-precision rerank. The future DuckDB extension would swap the OS-file
@@ -40,7 +40,7 @@ proposal claim this prototype verifies directly (see `results.md` §1.3).
 | `make_figures.py` | regenerates `figures/*.png` from the recorded result JSONs |
 | `figures/` | result figures used in this README |
 | `requirements.txt` | pinned dependency floor |
-| `results_*.json`, `` | raw outputs from past runs (`results_siftsmall.json` = the SIFT10K run, results.md §8) |
+| `results_*.json` | raw outputs from past runs (`results_siftsmall.json` = the SIFT10K run, results.md §8) |
 | `proto*.idx` | built index files (regenerable; safe to delete) |
 
 ## Install
@@ -84,8 +84,9 @@ flagged in review — `run_experiments.py` no longer supports that mode.
 
 ### SIFT example
 
-Download `siftsmall.tar.gz` from
-<https://ftp.irisa.fr/local/texmex/corpus/siftsmall.tar.gz> (or the full SIFT1M), extract so that the
+Download `siftsmall.tar.gz` from the
+[TEXMEX archive](https://ftp.irisa.fr/local/texmex/corpus/siftsmall.tar.gz)
+(or the full SIFT1M), extract so that the
 `.fvecs` files sit in a directory, and pass:
 
 ```

@@ -1,7 +1,7 @@
 # Part A Prototype — Experiment Results
 
 Standalone Python prototype of the DiskANN-style index proposed in Part A
-(`hw4_course_proposal_PartA.pdf`). Two-pass Vamana build (α=1.0 then α=1.2),
+the accompanying Part A proposal. Two-pass Vamana build (α=1.0 then α=1.2),
 PQ-pruned Beam Search, full-precision rerank, page-aligned binary file layout.
 
 Hardware: laptop, single-thread Python 3.12.7, NumPy 2.1.2. No SIMD, no Numba JIT —
@@ -52,7 +52,7 @@ These are the runs that use an independent Gaussian sample for the query set
 (seed = 12345), so query vectors are not present in the index. Common settings:
 `dim = 128`, `nq = 200`, `k = 10`, `M = 32`, `ef_construction = 96`, `pq_m = 16`.
 
-**n = 5,000** &nbsp;(`results_5k_heldout.json`, ``)
+**n = 5,000** &nbsp;(`results_5k_heldout.json`)
 
 | method | build (s) | mean q (ms) | p95 (ms) | p99 (ms) | recall@10 |
 |---|---:|---:|---:|---:|---:|
@@ -65,7 +65,7 @@ These are the runs that use an independent Gaussian sample for the query set
 | `proto-mmap`  L=128   |   —   | 11.09 | 16.51 |  26.12 | 0.853 |
 | `proto-mmap`  L=256   |   —   | 17.48 | 29.13 |  38.77 | 0.937 |
 
-**n = 10,000** &nbsp;(`results_10k_heldout.json`, ``)
+**n = 10,000** &nbsp;(`results_10k_heldout.json`)
 
 | method | build (s) | mean q (ms) | p95 (ms) | p99 (ms) | recall@10 |
 |---|---:|---:|---:|---:|---:|
@@ -94,7 +94,7 @@ visible. **For citation / reviewer-facing comparisons, use §1.1.**
 <details>
 <summary>Older (in-set) tables — click to expand</summary>
 
-**n = 5,000, in-set queries** &nbsp;(`results_5k.json`, ``)
+**n = 5,000, in-set queries** &nbsp;(`results_5k.json`)
 
 | method | build (s) | mean q (ms) | p95 (ms) | p99 (ms) | recall@10 (in-set) |
 |---|---:|---:|---:|---:|---:|
@@ -107,7 +107,7 @@ visible. **For citation / reviewer-facing comparisons, use §1.1.**
 | `proto-mmap`  L=128   |   —   |  7.38 | 10.17 | 14.32 | 0.900 |
 | `proto-mmap`  L=256   |   —   | 13.24 | 19.54 | 21.52 | 0.959 |
 
-**n = 10,000, in-set queries** &nbsp;(`results_10k.json`, ``)
+**n = 10,000, in-set queries** &nbsp;(`results_10k.json`)
 
 | method | build (s) | mean q (ms) | p95 (ms) | p99 (ms) | recall@10 (in-set) |
 |---|---:|---:|---:|---:|---:|
@@ -339,9 +339,7 @@ timing change).
 - `diskann_proto.py` — implementation (Vamana builder, PQ, page-aligned writer, mmap reader, beam search)
 - `run_experiments.py` — experiment runner (Gaussian + SIFT loader)
 - `results_5k_heldout.json`, `results_10k_heldout.json` — current canonical runs (held-out queries)
-- ``, `` — captured stdout for the above
 - `results_5k.json`, `results_10k.json` — older (in-set query) runs; kept for reference, do not cite
-- ``, `` — captured stdout for the older runs
 - `results_1k_smoke.json` — n=1k smoke after all runner + `diskann_proto.py` fixes (current)
 - `results_smoke.json` — earlier n=1k smoke, before the `diskann_proto.py` timing change
 - `proto*.idx` — built indices (regenerable; safe to delete)
@@ -371,7 +369,7 @@ Added after the write-up above; no experiment in §1–§5 was rerun or altered.
 
 ## 8. SIFT10K run: the recall bar clears on real data (added 2026-07-06)
 
-`results_siftsmall.json` / `` / `proto_sift.idx` — the first
+`results_siftsmall.json` / `proto_sift.idx` — the first
 recorded run on a real ANN dataset: TEXMEX `siftsmall` (10,000 base vectors,
 dim=128, the corpus's own 100 query vectors), same hyperparameters as the
 Gaussian n=10k run (M=32, ef_construction=96, pq_m=16).

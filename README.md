@@ -27,8 +27,7 @@ residual filter.
 ![Schematic: baseline residual-B filtering vs Multi-SeRF B-bucket routing](PartB_MultiSeRF/figures/fig_mechanism.png)
 
 An interactive version of this schematic — with the recorded QPS numbers
-attached — is available at
-[local browser demo](PartB_MultiSeRF/demo_visual.html)
+attached — is available as a [local browser demo](PartB_MultiSeRF/demo_visual.html)
 (single-file HTML; no dependencies).
 
 **Headline result.** On synthetic data, Multi-SeRF is much faster when the
