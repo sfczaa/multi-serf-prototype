@@ -14,3 +14,23 @@ PartB_MultiSeRF/data/
 *日誌*.md
 *journal*.md
 *diary*.md
+
+# credentials — never commit
+.env
+.env.*
+*.pem
+*.key
+*.p12
+credentials.json
+service_account*.json
+
+# local assistant / editor tooling state
+.claude/
+.codex/
+.cursor/
+.aider*
+CLAUDE.md
+AGENTS.md
+.vscode/
+.idea/
+.DS_Store

@@ -75,6 +75,9 @@ def _read_fvecs(path: Path) -> np.ndarray:
         raw.reshape(-1, dim + 1)[:, 1:].view(np.float32))
 
 
+SIFTSMALL_SHA256 = "b8f1e59b20319ac44279d5251706909dd3a5b8ca5ce2a11ddb1e73902252770e"
+
+
 def load_siftsmall(seed: int = 0):
     """SIFT10K (TEXMEX `siftsmall`): 10k real 128-d SIFT base vectors plus the
     corpus's own 100 held-out query vectors. The corpus has no structured
@@ -84,6 +87,7 @@ def load_siftsmall(seed: int = 0):
     root = Path(__file__).resolve().parent / "data"
     d = root / "siftsmall"
     if not (d / "siftsmall_base.fvecs").exists():
+        import hashlib
         import tarfile
         import urllib.request
         root.mkdir(exist_ok=True)
@@ -91,6 +95,15 @@ def load_siftsmall(seed: int = 0):
         url = "https://ftp.irisa.fr/local/texmex/corpus/siftsmall.tar.gz"
         print(f"downloading {url} ...")
         urllib.request.urlretrieve(url, tgz)
+        # Pinned digest of the published TEXMEX archive (5,305,734 bytes,
+        # 10,000 x 128-d base vectors). Verified before the archive is opened
+        # so a corrupted or substituted download fails loudly here.
+        digest = hashlib.sha256(tgz.read_bytes()).hexdigest()
+        if digest != SIFTSMALL_SHA256:
+            tgz.unlink()
+            raise RuntimeError(
+                f"{url} does not match the expected SHA-256. "
+                f"expected {SIFTSMALL_SHA256}, got {digest}")
         with tarfile.open(tgz) as tf:
             root_resolved = root.resolve()
             for member in tf.getmembers():
