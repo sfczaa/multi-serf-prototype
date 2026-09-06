@@ -1,0 +1,71 @@
+{
+  "args": {
+    "n": 5000,
+    "dim": 32,
+    "nq": 100,
+    "k": 10,
+    "M": 16,
+    "ef_build": 64,
+    "tau": 0.15,
+    "out": "results_partB_mixed_workload.json",
+    "seed": 0
+  },
+  "mix": [
+    [
+      0.01,
+      0.4
+    ],
+    [
+      0.05,
+      0.2
+    ],
+    [
+      0.1,
+      0.2
+    ],
+    [
+      0.25,
+      0.1
+    ],
+    [
+      0.5,
+      0.1
+    ]
+  ],
+  "avg_pass_count": 542.27,
+  "arms": {
+    "SeRF+ResidualB (K=1)": {
+      "alpha": 128,
+      "recall": 0.9490000000000001,
+      "qps": 26.25540687437926,
+      "mean_buckets": 1.0,
+      "reached_target": true,
+      "over_serf": 1.0
+    },
+    "Multi-SeRF K=4": {
+      "alpha": 32,
+      "recall": 0.9540000000000001,
+      "qps": 86.00065068102194,
+      "mean_buckets": 1.4,
+      "reached_target": true,
+      "over_serf": 3.275540580745816
+    },
+    "Multi-SeRF K=16": {
+      "alpha": 8,
+      "recall": 0.9600000000000002,
+      "qps": 238.7279809215071,
+      "mean_buckets": 2.7,
+      "reached_target": true,
+      "over_serf": 9.09252642945954
+    },
+    "Adaptive (tau=0.15)": {
+      "alpha": 8,
+      "recall": 0.92,
+      "qps": 262.1532269947621,
+      "mean_buckets": 1.52,
+      "reached_target": true,
+      "over_serf": 9.98473298277386,
+      "frac_bucketed": 0.8
+    }
+  }
+}

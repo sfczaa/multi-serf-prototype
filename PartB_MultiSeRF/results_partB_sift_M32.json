@@ -1,0 +1,430 @@
+{
+  "args": {
+    "n": 10000,
+    "dim": 128,
+    "nq": 100,
+    "k": 10,
+    "K": 16,
+    "M": 32,
+    "ef_build": 200,
+    "a_sel": 1.0,
+    "b_corr": 0.0,
+    "dataset": "siftsmall",
+    "b_sweep": "0.01,0.05,0.10,0.25,0.50",
+    "out": "results_partB_sift_M32.json",
+    "seed": 0
+  },
+  "index": {
+    "serf_k1": {
+      "build_s": 49.040375699987635,
+      "edges": 638944,
+      "size_bytes": 12867328
+    },
+    "multiserf_kK": {
+      "build_s": 26.882262099999934,
+      "edges": 623104,
+      "size_bytes": 12677248,
+      "K": 16
+    }
+  },
+  "results": [
+    {
+      "s_B": 0.01,
+      "a_sel": 1.0,
+      "avg_pass_count": 97.58,
+      "avg_truth_size": 10.0,
+      "exact_qps": 276.97838737965606,
+      "rangefirst_qps": 14328.700361197134,
+      "serf_residualB": {
+        "alpha": 128,
+        "recall": 0.929,
+        "qps": 19.99842172458776,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "multiserf_cs": {
+        "alpha": 8,
+        "recall": 0.937,
+        "qps": 294.7911581482702,
+        "mean_buckets": 1.2,
+        "reached_target": true
+      },
+      "hnsw_postfilter": {
+        "alpha": 128,
+        "recall": 0.929,
+        "qps": 27.091177470860774,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "cs_over_serf_qps_ratio": 14.740721153301257,
+      "serf_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.011000000000000001,
+          "qps": 223.47652144352253,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 2,
+          "recall": 0.021,
+          "qps": 217.17776195198735,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 4,
+          "recall": 0.037000000000000005,
+          "qps": 219.88465290847705,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 8,
+          "recall": 0.069,
+          "qps": 184.99963740091098,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 16,
+          "recall": 0.154,
+          "qps": 107.44192173312643,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 32,
+          "recall": 0.31799999999999995,
+          "qps": 62.46873049638513,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 64,
+          "recall": 0.621,
+          "qps": 33.15212822071862,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 128,
+          "recall": 0.929,
+          "qps": 19.99842172458776,
+          "mean_buckets": 1.0
+        }
+      ],
+      "cs_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.13,
+          "qps": 386.75966946746036,
+          "mean_buckets": 1.2
+        },
+        {
+          "alpha": 2,
+          "recall": 0.301,
+          "qps": 445.5960627096653,
+          "mean_buckets": 1.2
+        },
+        {
+          "alpha": 4,
+          "recall": 0.607,
+          "qps": 347.1371254134546,
+          "mean_buckets": 1.2
+        },
+        {
+          "alpha": 8,
+          "recall": 0.937,
+          "qps": 294.7911581482702,
+          "mean_buckets": 1.2
+        }
+      ]
+    },
+    {
+      "s_B": 0.05,
+      "a_sel": 1.0,
+      "avg_pass_count": 495.19,
+      "avg_truth_size": 10.0,
+      "exact_qps": 331.1946987672963,
+      "rangefirst_qps": 10552.864566953931,
+      "serf_residualB": {
+        "alpha": 32,
+        "recall": 0.9469999999999998,
+        "qps": 65.61000442348471,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "multiserf_cs": {
+        "alpha": 2,
+        "recall": 0.977,
+        "qps": 237.04276820716842,
+        "mean_buckets": 1.76,
+        "reached_target": true
+      },
+      "hnsw_postfilter": {
+        "alpha": 32,
+        "recall": 0.9469999999999998,
+        "qps": 77.84648595105632,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "cs_over_serf_qps_ratio": 3.6129058409622723,
+      "serf_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.034,
+          "qps": 274.08599173525334,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 2,
+          "recall": 0.09399999999999999,
+          "qps": 218.80018728925393,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 4,
+          "recall": 0.203,
+          "qps": 168.45688607145624,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 8,
+          "recall": 0.39099999999999996,
+          "qps": 197.14277040068913,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 16,
+          "recall": 0.723,
+          "qps": 105.50149131499727,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 32,
+          "recall": 0.9469999999999998,
+          "qps": 65.61000442348471,
+          "mean_buckets": 1.0
+        }
+      ],
+      "cs_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.7300000000000001,
+          "qps": 222.04843231519158,
+          "mean_buckets": 1.76
+        },
+        {
+          "alpha": 2,
+          "recall": 0.977,
+          "qps": 237.04276820716842,
+          "mean_buckets": 1.76
+        }
+      ]
+    },
+    {
+      "s_B": 0.1,
+      "a_sel": 1.0,
+      "avg_pass_count": 1002.66,
+      "avg_truth_size": 10.0,
+      "exact_qps": 389.89090852828014,
+      "rangefirst_qps": 7323.700227834994,
+      "serf_residualB": {
+        "alpha": 16,
+        "recall": 0.9380000000000003,
+        "qps": 229.69607304613433,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "multiserf_cs": {
+        "alpha": 1,
+        "recall": 0.975,
+        "qps": 280.6491302150348,
+        "mean_buckets": 2.58,
+        "reached_target": true
+      },
+      "hnsw_postfilter": {
+        "alpha": 16,
+        "recall": 0.9370000000000002,
+        "qps": 270.0024570147432,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "cs_over_serf_qps_ratio": 1.221828159677186,
+      "serf_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.094,
+          "qps": 536.375368332295,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 2,
+          "recall": 0.20900000000000002,
+          "qps": 497.4129552163292,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 4,
+          "recall": 0.4000000000000001,
+          "qps": 449.6049096835335,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 8,
+          "recall": 0.7350000000000001,
+          "qps": 401.9841939746211,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 16,
+          "recall": 0.9380000000000003,
+          "qps": 229.69607304613433,
+          "mean_buckets": 1.0
+        }
+      ],
+      "cs_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.975,
+          "qps": 280.6491302150348,
+          "mean_buckets": 2.58
+        }
+      ]
+    },
+    {
+      "s_B": 0.25,
+      "a_sel": 1.0,
+      "avg_pass_count": 2495.35,
+      "avg_truth_size": 10.0,
+      "exact_qps": 566.0030281173491,
+      "rangefirst_qps": 1159.1958426094814,
+      "serf_residualB": {
+        "alpha": 16,
+        "recall": 0.9270000000000002,
+        "qps": 258.41582827817666,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "multiserf_cs": {
+        "alpha": 1,
+        "recall": 0.983,
+        "qps": 113.43484920605447,
+        "mean_buckets": 5.02,
+        "reached_target": true
+      },
+      "hnsw_postfilter": {
+        "alpha": 16,
+        "recall": 0.9270000000000002,
+        "qps": 128.29396355257956,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "cs_over_serf_qps_ratio": 0.43896246589022925,
+      "serf_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.23399999999999999,
+          "qps": 449.9990324979873,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 2,
+          "recall": 0.46599999999999986,
+          "qps": 551.8486654279831,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 4,
+          "recall": 0.8000000000000002,
+          "qps": 480.7010544396771,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 8,
+          "recall": 0.884,
+          "qps": 382.4355022713329,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 16,
+          "recall": 0.9270000000000002,
+          "qps": 258.41582827817666,
+          "mean_buckets": 1.0
+        }
+      ],
+      "cs_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.983,
+          "qps": 113.43484920605447,
+          "mean_buckets": 5.02
+        }
+      ]
+    },
+    {
+      "s_B": 0.5,
+      "a_sel": 1.0,
+      "avg_pass_count": 5058.28,
+      "avg_truth_size": 10.0,
+      "exact_qps": 265.5978301754804,
+      "rangefirst_qps": 306.73200059345453,
+      "serf_residualB": {
+        "alpha": 16,
+        "recall": 0.9300000000000002,
+        "qps": 138.5947792190115,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "multiserf_cs": {
+        "alpha": 1,
+        "recall": 0.9790000000000001,
+        "qps": 57.416329479467386,
+        "mean_buckets": 9.05,
+        "reached_target": true
+      },
+      "hnsw_postfilter": {
+        "alpha": 16,
+        "recall": 0.9300000000000002,
+        "qps": 146.23645850555596,
+        "mean_buckets": 1.0,
+        "reached_target": true
+      },
+      "cs_over_serf_qps_ratio": 0.41427483634673157,
+      "serf_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.415,
+          "qps": 265.88114740761137,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 2,
+          "recall": 0.795,
+          "qps": 287.04609758589845,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 4,
+          "recall": 0.8750000000000001,
+          "qps": 279.03623118642264,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 8,
+          "recall": 0.8840000000000002,
+          "qps": 276.9199413419217,
+          "mean_buckets": 1.0
+        },
+        {
+          "alpha": 16,
+          "recall": 0.9300000000000002,
+          "qps": 138.5947792190115,
+          "mean_buckets": 1.0
+        }
+      ],
+      "cs_curve": [
+        {
+          "alpha": 1,
+          "recall": 0.9790000000000001,
+          "qps": 57.416329479467386,
+          "mean_buckets": 9.05
+        }
+      ]
+    }
+  ]
+}

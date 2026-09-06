@@ -1,0 +1,37 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+      - run: pip install numpy matplotlib pytest duckdb pandas scikit-learn
+      - name: sanity tests
+        working-directory: PartB_MultiSeRF
+        run: pytest test_sanity.py -q
+      - name: Part A sanity tests
+        working-directory: PartA_DiskANN
+        run: pytest test_sanity.py -q
+      - name: smoke experiment
+        working-directory: PartB_MultiSeRF
+        run: python run_experiments_partB.py --n 800 --dim 16 --nq 10 --K 8 --out /tmp/smoke.json
+      - name: adaptive smoke
+        working-directory: PartB_MultiSeRF
+        run: python run_adaptive.py --n 800 --dim 16 --nq 10 --K 8 --out /tmp/adaptive_smoke.json
+      - name: duckdb UDF demo
+        working-directory: PartB_MultiSeRF
+        run: python sql_demo.py
+      - name: figures regenerate from recorded results
+        working-directory: PartB_MultiSeRF
+        run: python make_figures.py
