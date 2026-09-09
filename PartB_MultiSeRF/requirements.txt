@@ -8,4 +8,4 @@ numpy>=1.26         # 2.x also fine; only mainstream APIs are used
 matplotlib>=3.8     # make_figures.py only
 pytest>=9.0.3           # test_sanity.py only
 duckdb>=1.1.0         # sql_demo.py only
-pandas>=2.0         # sql_demo.py only (bulk load into DuckDB)
+pandas>=3.0.5         # sql_demo.py only (bulk load into DuckDB)
