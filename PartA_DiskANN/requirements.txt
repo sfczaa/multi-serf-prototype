@@ -11,5 +11,5 @@ psutil>=5.9         # 7.2.2 used in development; for peak RSS reporting
 pynndescent>=0.5    # 0.6.0 used in development; in-memory ANN baseline
 
 # Optional tooling. Not needed to run the prototype or experiments.
-matplotlib>=3.8     # make_figures.py only
+matplotlib>=3.11.1     # make_figures.py only
 pytest>=9.0.3           # test_sanity.py only
