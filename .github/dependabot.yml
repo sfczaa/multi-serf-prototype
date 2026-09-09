@@ -1,0 +1,14 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/PartA_DiskANN"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/PartB_MultiSeRF"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

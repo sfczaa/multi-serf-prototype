@@ -1,11 +1,10 @@
 # Vector Search Index Prototypes
 
 This repository contains two research prototypes for vector search inside
-database systems. For portfolio use, the recommended focus is **Part B:
-Multi-SeRF**, because it has the clearest problem statement, baseline, and
-experimental result.
+database systems: Multi-SeRF for range-filtered search and a DiskANN-style
+on-disk index.
 
-## Portfolio Focus: Part B Multi-SeRF
+## Part B: Multi-SeRF
 
 **Problem.** Vector similarity search often needs structured filters, for
 example "find nearest vectors where attribute A and attribute B are both in a
@@ -67,11 +66,9 @@ the algorithmic kernel in Python: Vamana graph construction, product
 quantization, page-aligned file layout, mmap-backed reads, beam search, and
 full-vector reranking.
 
-This is best presented as an advanced systems prototype, not as a finished
-DuckDB extension. The storage layout round-trips correctly (byte-exact, now
+This is an experimental index implementation. The storage layout round-trips correctly (byte-exact, now
 pinned by sanity tests), the file-size claim is supported, and on real
-SIFT10K vectors the proposal's recall bar clears decisively (0.998 at L=64;
-the miss reported on synthetic Gaussian was a property of the data). DuckDB
+SIFT10K vectors recall reaches 0.998 at L=64 (see the separate synthetic Gaussian results). DuckDB
 integration, cold-cache benchmarking, MVCC, and beyond-10k-scale validation
 remain out of scope. It ships with a one-minute `demo.py`, storage-layer
 sanity tests, and figures generated from the recorded runs.
@@ -86,23 +83,10 @@ See [PartA_DiskANN/README.md](PartA_DiskANN/README.md).
 | `PartA_DiskANN/` | Secondary prototype: on-disk ANN algorithmic kernel |
 | `.github/workflows/ci.yml` | CI: Part A/B sanity tests + Part B smoke demos + figure regeneration |
 
-## Recommended Portfolio Positioning
+## Scope and limitations
 
-Use Part B as the main story:
-
-> I built a Python prototype of a multi-attribute range-filtered vector search
-> index. It partitions data by a secondary range attribute and searches only
-> relevant buckets, improving QPS by 15–25x over a residual-filter baseline
-> when the secondary predicate is selective — reproduced on real SIFT vectors,
-> growing with n (at n=100k it is faster wherever both arms reach recall 0.9,
-> and at 1–5% it is the only arm that does), topped with a query-adaptive
-> router that removes the wide-window penalty.
-
-Keep the scope precise:
-
-- This is a research prototype, not a production vector database.
-- Results are from single-thread Python on synthetic data.
-- The key evidence is the like-for-like ratio between Multi-SeRF and
-  SeRF+ResidualB, which share the same graph implementation.
-- Wide-range queries expose a real trade-off: more buckets searched means more
-  overhead.
+These are single-threaded Python research prototypes. The recorded experiments
+include synthetic datasets and real SIFT vectors; they do not establish
+production performance. Multi-SeRF and SeRF+ResidualB share the same graph
+implementation, so the comparison isolates bucket routing. Wide-range queries
+can lose that advantage because they search more buckets.
