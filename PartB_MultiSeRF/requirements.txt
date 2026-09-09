@@ -2,7 +2,7 @@
 # The prototype and experiment runner need numpy only; SegmentGraph1D is
 # hand-rolled pure Python.
 
-numpy>=1.26         # 2.x also fine; only mainstream APIs are used
+numpy>=2.5.2         # 2.x also fine; only mainstream APIs are used
 
 # Optional tooling. Not needed to run the prototype or experiments.
 matplotlib>=3.8     # make_figures.py only
