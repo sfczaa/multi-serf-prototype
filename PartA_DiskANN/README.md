@@ -1,7 +1,7 @@
 # DiskANN-style on-disk ANN: Part A prototype
 
-Standalone Python prototype of the on-disk ANN index proposed in Part A
-the accompanying Part A proposal. Builds a two-pass Vamana graph, encodes vectors
+Standalone Python prototype of the on-disk ANN index proposed in the
+accompanying Part A proposal. Builds a two-pass Vamana graph, encodes vectors
 with product quantisation, writes everything to a single page-aligned binary
 file, and serves nearest-neighbour queries with PQ-pruned beam search +
 full-precision rerank. The future DuckDB extension would swap the OS-file

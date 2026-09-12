@@ -1,7 +1,7 @@
 # Part A Prototype: Experiment Results
 
-Standalone Python prototype of the DiskANN-style index proposed in Part A
-the accompanying Part A proposal. Two-pass Vamana build (α=1.0 then α=1.2),
+Standalone Python prototype of the DiskANN-style index proposed in the
+accompanying Part A proposal. Two-pass Vamana build (α=1.0 then α=1.2),
 PQ-pruned Beam Search, full-precision rerank, page-aligned binary file layout.
 
 Hardware: laptop, single-thread Python 3.12.7, NumPy 2.1.2. No SIMD, no Numba JIT;
