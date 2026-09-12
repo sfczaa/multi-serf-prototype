@@ -1,14 +1,45 @@
+# Routine version-update pull requests are switched off here; security updates
+# are a repository setting and are unaffected by open-pull-requests-limit.
+#
+# This repository is a finished prototype record rather than a maintained
+# library. Both prototypes generate their synthetic datasets and query sets
+# from numpy's generator stream, and the committed results_*.json files are
+# the measurements taken against those exact streams. Floating the versions
+# would quietly break the reproducibility the repository exists to document.
+#
+# The ignore entries below are the couplings that would break something
+# concrete, kept so the reason travels with the constraint instead of living
+# only in a commit message.
 version: 2
 updates:
   - package-ecosystem: "pip"
     directory: "/PartA_DiskANN"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 0
+    ignore:
+      # run_experiments.py draws the base vectors and held-out queries from
+      # numpy's generator stream; every results_*.json and every committed
+      # .idx file was built from that stream.
+      - dependency-name: "numpy"
+      # diskann_proto.py trains the PQ codebooks with sklearn's KMeans. The
+      # committed .idx files carry those codebooks, so the recall tables only
+      # reproduce under the KMeans that produced them.
+      - dependency-name: "scikit-learn"
+
   - package-ecosystem: "pip"
     directory: "/PartB_MultiSeRF"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 0
+    ignore:
+      # test_sanity.py asserts gen_data still reproduces the recorded stream
+      # that every results_partB_*.json was measured against; a change in
+      # numpy's generator would fail that test rather than pass silently.
+      - dependency-name: "numpy"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 0
