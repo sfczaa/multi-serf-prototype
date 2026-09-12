@@ -77,19 +77,23 @@ One file, page size `P = 4096 B` (matches DuckDB's default block size, makes the
 BuildIndex(X[n,dim], M, ef_construction, pq_m):
     train PQ codebook on a sample (~50k rows) of X
     encode all X into PQ codes
-    initialize empty graph G with n nodes, each with neighbor set ∅
+    initialize G with n nodes, each seeded with M random neighbors
     pick entry point ep = node nearest to centroid of X
-    for each point p in random order:
-        candidates = GreedySearch(G, p, ef_construction, start=ep)
-        prune candidates by RobustPrune(p, candidates, alpha=1.2, M)
-        set G[p].nbrs = pruned
-        for each q in pruned:
-            G[q].nbrs.add(p)
-            if |G[q].nbrs| > M: RobustPrune(q, G[q].nbrs, alpha=1.2, M)
+    VamanaPass(alpha=1.0)
+    VamanaPass(alpha=1.2)
     write file: header → graph → PQ → full vectors → codebook
+
+VamanaPass(alpha):
+    for each point p in a fresh random order:
+        V = GreedySearch(G, p, ef_construction, start=ep)
+        V = V ∪ G[p].nbrs                  # keep what the earlier pass found
+        set G[p].nbrs = RobustPrune(p, V, alpha, M)
+        for each q in G[p].nbrs:
+            G[q].nbrs.add(p)
+            if |G[q].nbrs| > M: G[q].nbrs = RobustPrune(q, G[q].nbrs, alpha, M)
 ```
 
-This is the in-memory variant of the Vamana build. The proposal's "chunked, shard-then-merge" build is what you'd use when even the graph doesn't fit in RAM — we don't need it at the scale this prototype runs (≤ 100k vectors), and the chunked builder is **not implemented**. It is listed under §6 "What this prototype does NOT prove" as future work; the algorithmic reference is DiskANN §3.
+This is the in-memory variant of the Vamana build, run twice: once at α=1.0 and again at α=1.2, which is the DiskANN paper's Section 3 procedure. The second pass keeps each node's current neighbors in the candidate set, so it tightens the graph the first pass built instead of rebuilding it. The two passes carry real weight: on the older in-set runs, a single α=1.2 pass measured recall@10 = 0.695 at n=10k against 0.900 for the pair (`results.md` §2.3). The proposal's "chunked, shard-then-merge" build is what you'd use when even the graph doesn't fit in RAM — we don't need it at the scale this prototype runs (≤ 100k vectors), and the chunked builder is **not implemented**. It is listed under §6 "What this prototype does NOT prove" as future work; the algorithmic reference is DiskANN §3.
 
 **RobustPrune** is the standard Vamana α-pruning rule: keep a neighbor only if no already-kept neighbor is α-closer to it than the source node is. α=1.2 is the DiskANN default.
 
@@ -139,8 +143,8 @@ Query(q, k, L):                              # L = beam width, L ≥ k
 
 ### Datasets
 
-1. **Random Gaussian, n × 128.** The runner generates a fresh standard-normal dataset (default n = 10k) plus a held-out Gaussian query set (independent seed) so queries are not present in the index. This is the only dataset actually exercised by the runner.
-2. **SIFT / GIST.** The proposal references SIFT1M / GIST1M as the natural benchmark. A SIFT-style `.fvecs` loader (`load_fvecs` / `load_sift`) has been added to `run_experiments.py`, along with `--dataset sift` and `--sift-dir` CLI flags, but **no SIFT benchmark run has been collected or recorded** in this prototype. Gaussian may be harder for graph ANN than SIFT (no cluster structure), so recall numbers here could plausibly be read as a pessimistic floor — but that should be verified by an actual SIFT run before being relied on.
+1. **Random Gaussian, n × 128.** The runner generates a fresh standard-normal dataset (default n = 10k) plus a held-out Gaussian query set (independent seed) so queries are not present in the index. This is the default and carries every number in `results.md` §1–§5.
+2. **SIFT / GIST.** The proposal references SIFT1M / GIST1M as the natural benchmark. A SIFT-style `.fvecs` loader (`load_fvecs` / `load_sift`) is in `run_experiments.py`, along with `--dataset sift` and `--sift-dir` CLI flags. One real-data run is recorded: TEXMEX `siftsmall`, 10k base vectors and the corpus's own 100 queries (`results.md` §8). Gaussian is the harder case for graph ANN, and the hyperparameters that miss the 0.95 bar there reach recall@10 = 0.998 on SIFT10K, so the Gaussian numbers do read as a pessimistic floor. SIFT1M and GIST stay untested.
 
 ### Baselines
 
@@ -179,7 +183,7 @@ Calling these out explicitly so the results writeup doesn't overclaim:
 - It doesn't prove the index can live inside a `.duckdb` file: we use a sibling OS file.
 - It doesn't prove MVCC compatibility: there are no concurrent writers.
 - It doesn't prove shard-merge correctness: the chunked / shard-then-merge builder is **not implemented**, not even as a stub.
-- It doesn't test on SIFT, GIST, or any real ANN benchmark dataset; a SIFT `.fvecs` loader has been added to `run_experiments.py` but no SIFT run has been collected or recorded yet — every number in `results.md` is on synthetic Gaussian.
+- It doesn't reach benchmark scale on real data. The one real-data run is `siftsmall`: 10k vectors, 100 corpus queries, single run, warm cache (`results.md` §8). SIFT1M and GIST are untested, and every number in §1–§5 of `results.md` is on synthetic Gaussian.
 - It doesn't measure cold-cache disk-bound behaviour: `proto-mmap` runs against whatever the OS page cache happens to hold; there is no `proto-cold` baseline that flushes the cache.
 - It doesn't prove the storage format is forward-compatible across vss releases: only the `version` field is in place.
 - It doesn't scale-test to 1M–10M; that requires moving the build off Python.

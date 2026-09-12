@@ -130,9 +130,8 @@ which both of the proposal's success criteria hold simultaneously. See
 | n = 20,000 (single run, nq=50) | Advantage grows across the board: 15.5x / 11.2x / 6.5x / 2.9x / 0.85x. The crossover moves past 25% B selectivity. |
 | n = 100,000 (single run, nq=50) | At 1–5%, Multi-SeRF clears recall 0.9 while the baseline does not at the tested α cap (512) — the 22.5x/25.1x ratios there compare against the baseline's best sub-floor point. At 10–50%, both clear recall 0.9 and Multi-SeRF is faster: 17.3x / 8.6x / **5.0x at 50%**. The wide-B penalty is a small-n artifact. |
 
-See `results.md` §9–12 for the full tables and the honest caveats on each check.
-
-See `results.md` for the full write-up, caveats, and K-sensitivity tables.
+See `results.md` §9–12 for the full tables and the honest caveats on each
+check, and the rest of it for the K-sensitivity tables and the full write-up.
 
 ## Files
 
@@ -146,7 +145,7 @@ See `results.md` for the full write-up, caveats, and K-sensitivity tables.
 | `run_mixed_workload.py` | mixed-selectivity stream, one shared α per index (K=1/4/16/adaptive) |
 | `demo.py` | ~30 s quick demo: build both indexes, watch the routing on 3 window widths |
 | `sql_demo.py` | DuckDB scalar-UDF demo: the index answering a filtered k-NN question in SQL |
-| `demo_visual.html` | browser-only visual demo of bucket routing (published via GitHub Pages; numbers from the recorded headline run) |
+| `demo_visual.html` | browser-only visual demo of bucket routing (single-file HTML, opened locally; numbers from the recorded headline run) |
 | `test_sanity.py` | sanity tests: `recall_at_k` semantics; K=1 equals the baseline path; predicate safety; adaptive routing |
 | `make_figures.py` | regenerates `figures/*.png` from the existing result JSON files |
 | `figures/` | result figures used in this README |

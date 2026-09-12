@@ -186,7 +186,7 @@ graph methods share `SegmentGraph1D` (see §1.1).
 | | scope of prototype | scope of full Multi-SeRF |
 |---|---|---|
 | dataset | synthetic Gaussian vectors + 2 synthetic ordered attrs | Amazon ~500K, Airbnb ~200K (real embeddings) |
-| n | 10k–50k | 200k–500k |
+| n | 5k–100k | 200k–500k |
 | dim | 64–128 | 384 |
 | index | in-memory `SegmentGraph1D` | persisted SeRF 2D segment graph |
 | A-range handling | segment graph (lower) + residual (upper) | full 2D segment graph |
@@ -196,8 +196,9 @@ graph methods share `SegmentGraph1D` (see §1.1).
 Synthetic, controllable selectivity:
 - vectors: `N(0, I)` in `R^d`.
 - attributes `a`, `b`: independent `Uniform[0, 1]` (independent of the vectors
-  and of each other). Independence is the simplest baseline; correlated
-  attributes are a documented future variant.
+  and of each other). Independence is the simplest baseline; `--b-corr`
+  makes B depend on the vectors, and one correlation strength was measured
+  (`results.md` §9.2).
 - queries: held-out `N(0, I)` vectors (same discipline as Part A — never drawn
   from the indexed set).
 
