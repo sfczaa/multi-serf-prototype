@@ -271,20 +271,10 @@ reruns experiments.
 - `sql_demo.py` is a scalar-UDF demo, not a DBMS integration: no extension,
   persistence, or planner hook.
 
-## Portfolio Summary
-
-One-sentence version:
+## Summary
 
 > Built a Python prototype for multi-attribute range-filtered vector search:
 > `B`-bucket routing improves QPS by 15–25x over a residual-filter baseline at
 > 1% secondary-predicate selectivity (recall ≥ 0.9; 3 seeds, real SIFT vectors,
 > growing with n up to 100k), and a query-adaptive router removes the
 > wide-window penalty, meeting both of the proposal's success criteria at once.
-
-Best way to present the project:
-
-- Lead with the multi-filter vector search problem.
-- Explain the `B`-bucket routing idea visually or with a small diagram.
-- Show the QPS ratio table and the K trade-off.
-- Be explicit that this is a prototype with synthetic data and shared-code
-  baselines, not a complete DBMS integration.
