@@ -1,7 +1,7 @@
 """
 Compare bucket routing in a small Multi-SeRF index.
 
-Runs in ~20-30 s:  py -3 demo.py
+Run:  py -3 demo.py
 
 Builds the K=1 baseline (SeRF+ResidualB) and a K=16 Compound Segment over the
 same 5,000 synthetic points, then answers the same filtered-ANN workload with

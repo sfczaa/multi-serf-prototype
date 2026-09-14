@@ -15,9 +15,9 @@ directory is the **algorithmic kernel**, not the DuckDB extension; see
 **Quick start**:
 
 ```bash
-py -3 demo.py                       # ~1 min: build a small index, verify
+py -3 demo.py                       # build a small index, verify
                                     # eager==mmap, print recall/latency/layout
-py -3 -m pytest test_sanity.py -q   # ~10 s: storage-layer invariants
+py -3 -m pytest test_sanity.py -q   # storage-layer invariants
 ```
 
 ## The storage layout at a glance
@@ -35,7 +35,7 @@ proposal claim this prototype verifies directly (see `results.md` §1.3).
 | `results.md`      | experiment write-up; read §0 for caveats before the headline tables |
 | `diskann_proto.py`| implementation: PQ, Vamana builder, page-aligned writer, mmap reader, beam search, ground-truth `exact_knn`, `recall_at_k` |
 | `run_experiments.py` | CLI runner: dataset → build → benchmark sweep → JSON + markdown output |
-| `demo.py` | ~1 min narrated demo: small build, eager-vs-mmap check, layout printout |
+| `demo.py` | narrated demo: small build, eager-vs-mmap check, layout printout |
 | `test_sanity.py` | sanity tests: byte-exact roundtrip, eager==mmap, header/page alignment, metric correctness |
 | `make_figures.py` | regenerates `figures/*.png` from the recorded result JSONs |
 | `figures/` | result figures used in this README |
@@ -73,7 +73,7 @@ Useful flags:
 | `--n`, `--dim`, `--nq`, `--k` | dataset / query size; only used for `--dataset gaussian` |
 | `--M`, `--ef-construction`, `--pq-m`, `--L` | Vamana / PQ / beam-search hyperparameters |
 | `--rebuild` | delete and rebuild the index file before benchmarking |
-| `--skip-pynnd` | skip the pynndescent in-memory baseline (saves ~30s build) |
+| `--skip-pynnd` | skip the pynndescent in-memory baseline |
 | `--dataset {gaussian,sift}` | data source |
 | `--sift-dir PATH` | directory containing `siftsmall_base.fvecs` / `siftsmall_query.fvecs` (or the full `sift_base.fvecs` / `sift_query.fvecs` pair); falls back to gaussian with a warning if neither pair is present |
 

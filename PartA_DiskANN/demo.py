@@ -1,7 +1,7 @@
 """
 Build and query a small on-disk index.
 
-Runs in ~30-60 s:  py -3 demo.py
+Run:  py -3 demo.py
 
 Builds a Vamana graph + PQ codes over 1,000 synthetic vectors, writes the
 page-aligned index file, reads it back in both access modes, and reports

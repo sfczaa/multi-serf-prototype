@@ -8,7 +8,7 @@ extension, no persistence, no planner hook, and the timing compares DuckDB's
 vectorised native scan against a pure-Python graph walk crossing the UDF
 boundary per row.
 
-Run:  py -3 sql_demo.py      (needs `pip install duckdb`; ~15 s)
+Run:  py -3 sql_demo.py      (needs `pip install duckdb`)
 """
 
 from __future__ import annotations

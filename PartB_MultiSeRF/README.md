@@ -18,7 +18,7 @@ router on top removes the wide-window penalty entirely.
 **Quick start**:
 
 ```bash
-py -3 demo.py       # ~30 s narrated demo of the routing mechanism (needs only numpy)
+py -3 demo.py       # narrated demo of the routing mechanism (needs only numpy)
 py -3 sql_demo.py   # filtered k-NN in DuckDB SQL (additionally needs duckdb and pandas)
 ```
 
@@ -143,7 +143,7 @@ check, and the rest of it for the K-sensitivity tables and the full write-up.
 | `run_adaptive.py` | adaptive-routing experiment: K=1 vs K=16 vs query-time routing |
 | `run_adaptive_tau_sweep.py` | routing-threshold sensitivity: τ ∈ {0.05…0.50} vs the same baselines |
 | `run_mixed_workload.py` | mixed-selectivity stream, one shared α per index (K=1/4/16/adaptive) |
-| `demo.py` | ~30 s quick demo: build both indexes, watch the routing on 3 window widths |
+| `demo.py` | quick demo: build both indexes, watch the routing on 3 window widths |
 | `sql_demo.py` | DuckDB scalar-UDF demo: the index answering a filtered k-NN question in SQL |
 | `demo_visual.html` | browser-only visual demo of bucket routing (single-file HTML, opened locally; numbers from the recorded headline run) |
 | `test_sanity.py` | sanity tests: `recall_at_k` semantics; K=1 equals the baseline path; predicate safety; adaptive routing |
@@ -195,7 +195,7 @@ py -3 run_experiments_partB.py --dataset siftsmall --nq 100 --K 16 --out results
 py -3 run_adaptive.py --n 5000 --dim 32 --nq 100 --K 16 --tau 0.15 --out results_partB_adaptive.json
 
 # quick demos
-py -3 demo.py        # ~30 s narrated demo
+py -3 demo.py        # narrated demo
 py -3 sql_demo.py    # DuckDB UDF demo (pip install duckdb)
 
 # quick smoke

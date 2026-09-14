@@ -362,7 +362,7 @@ Added after the write-up above; no experiment in §1–§5 was rerun or altered.
 - `make_figures.py` → `figures/`: recall-vs-L, eager-vs-mmap latency, and
   the file-layout/size-breakdown diagram, all read from the recorded
   `results_*_heldout.json` files (never rerun experiments).
-- `demo.py`: ~1 min narrated build+query demo on n=1k; asserts eager==mmap
+- `demo.py`: narrated build+query demo on n=1k; asserts eager==mmap
   on every configuration it prints.
 
 ---

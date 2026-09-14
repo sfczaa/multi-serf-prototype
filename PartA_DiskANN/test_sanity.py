@@ -12,7 +12,7 @@ These pin the storage-layer invariants the write-up leans on:
   4. `exact_knn` / `recall_at_k` (the measurement tools) are themselves
      correct.
 
-Run:  py -3 -m pytest test_sanity.py -q      (~10 s: builds one small index)
+Run:  py -3 -m pytest test_sanity.py -q      (builds one small index)
 """
 
 from __future__ import annotations

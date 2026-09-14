@@ -70,7 +70,7 @@ This is an experimental index implementation. The storage layout round-trips cor
 pinned by sanity tests), the file-size claim is supported, and on real
 SIFT10K vectors recall reaches 0.998 at L=64 (see the separate synthetic Gaussian results). DuckDB
 integration, cold-cache benchmarking, MVCC, and beyond-10k-scale validation
-remain out of scope. It ships with a one-minute `demo.py`, storage-layer
+remain out of scope. It ships with a narrated `demo.py`, storage-layer
 sanity tests, and figures generated from the recorded runs.
 
 See [PartA_DiskANN/README.md](PartA_DiskANN/README.md).
