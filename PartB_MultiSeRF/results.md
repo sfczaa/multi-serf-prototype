@@ -126,12 +126,12 @@ The proposal calls the project successful if **either** holds:
 > **(1)** Multi-SeRF ≥ 2× QPS over SeRF+ResidualB at `s_B ≤ 5%`, recall floor 0.9.
 > **(2)** Multi-SeRF within 20% of SeRF+ResidualB QPS at `s_B ≥ 50%`.
 
-| | criterion (1) — narrow B | criterion (2) — wide B (ratio ≥ 0.83) |
+| | criterion (1) — narrow B | criterion (2) — wide B (ratio ≥ 0.80) |
 |---|---|---|
-| K=4  | ✅ 4.0× @1%, 4.0× @5% | ⚠️ 0.82× @50% — at the threshold |
-| K=16 | ✅ 24.6× @1%, 3.6× @5% | ❌ 0.43× @50% |
-| K=32 | ✅ 32.8× @1%, 3.2× @5% | ❌ 0.31× @50% |
-| K=16, A=25% | ✅ 17× @1%, 7.3× @5% | ❌ 0.45× @50% |
+| K=4  | 4.0× @1%, 4.0× @5% | 0.82× @50% (met) |
+| K=16 | 24.6× @1%, 3.6× @5% | 0.43× @50% |
+| K=32 | 32.8× @1%, 3.2× @5% | 0.31× @50% |
+| K=16, A=25% | 17× @1%, 7.3× @5% | 0.45× @50% |
 
 - **Criterion (1) is met decisively in every configuration tested**, including
   with a restrictive A predicate. The recall floor of 0.9 is satisfied by
@@ -140,10 +140,9 @@ The proposal calls the project successful if **either** holds:
   fails clearly: at full bucket coverage Multi-SeRF runs K independent graph
   searches against the baseline's one, so it is 2–3× *slower* at s_B=50%.
 
-Since the proposal requires only one criterion, it is a **success by its own
-bar (criterion 1)** — and honestly so, the narrow-B win is large and robust.
-But the prototype also shows criterion (2) is *not* free: it holds only if K is
-kept small, which blunts the narrow-B win. The proposal's framing ("at wide B,
+The tested configurations meet criterion (1), satisfying the proposal's
+requirement. Criterion (2) holds only at K=4 in these runs; smaller K also
+reduces the narrow-B gain. The proposal's framing ("at wide B,
 Multi-SeRF approaches SeRF+ResidualB because the residual cost shrinks") is
 incomplete: it omits that Multi-SeRF's own per-bucket search cost *grows* with
 coverage. A faithful SeRF-2D core (one range-aware search instead of K) would
