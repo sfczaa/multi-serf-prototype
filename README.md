@@ -44,7 +44,7 @@ over three data seeds):
 ![Headline K=16 run: QPS ratio of Multi-SeRF over SeRF+ResidualB by B selectivity, with min–max whiskers over 3 data seeds](PartB_MultiSeRF/figures/fig_main_K16.png)
 
 The result supports the main claim: bucket routing helps most when the second
-range predicate is selective. It also shows the trade-off honestly: when the
+range predicate is selective. It also shows the trade-off: when the
 `B` predicate is wide, Multi-SeRF searches many buckets and can become slower
 than a single baseline graph, and then **resolves that trade-off** with a
 query-adaptive router that keeps both indexes and picks per query, reaching
@@ -66,8 +66,8 @@ the algorithmic kernel in Python: Vamana graph construction, product
 quantization, page-aligned file layout, mmap-backed reads, beam search, and
 full-vector reranking.
 
-This is an experimental index implementation. The storage layout round-trips correctly (byte-exact, now
-pinned by sanity tests), the file-size claim is supported, and on real
+This is an experimental index implementation. The storage layout round-trips correctly (byte-exact;
+covered by sanity tests), the file-size claim is supported, and on real
 SIFT10K vectors recall reaches 0.998 at L=64 (see the separate synthetic Gaussian results). DuckDB
 integration, cold-cache benchmarking, MVCC, and beyond-10k-scale validation
 remain out of scope. It ships with a narrated `demo.py`, storage-layer
@@ -79,7 +79,7 @@ See [PartA_DiskANN/README.md](PartA_DiskANN/README.md).
 
 | path | purpose |
 |---|---|
-| `PartB_MultiSeRF/` | Primary portfolio project: multi-attribute range-filtered ANN prototype |
+| `PartB_MultiSeRF/` | Primary prototype: multi-attribute range-filtered ANN prototype |
 | `PartA_DiskANN/` | Secondary prototype: on-disk ANN algorithmic kernel |
 | `.github/workflows/ci.yml` | CI: Part A/B sanity tests + Part B smoke demos + figure regeneration |
 

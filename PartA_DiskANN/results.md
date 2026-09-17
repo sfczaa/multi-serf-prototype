@@ -17,9 +17,7 @@ benchmark.
 
 ## 0. Caveats up front (please read before the tables)
 
-These caveats apply to every number in this document. Several are limitations that
-the prior writeup glossed over; flagging them here so a reviewer can calibrate
-how much weight to put on each claim.
+These caveats apply to every number in this document.
 
 - **In-set vs held-out queries.** §1.1 reports held-out runs (queries drawn
   from an independent N(0, I) sample, seed 12345). The older in-set tables
@@ -78,7 +76,7 @@ These are the runs that use an independent Gaussian sample for the query set
 | `proto-mmap`  L=128   |   —   | 10.06 | 14.79 |  17.12 | 0.770 |
 | `proto-mmap`  L=256   |   —   | 17.75 | 26.38 |  38.93 | 0.876 |
 
-A reviewer-relevant data point: on held-out n=10k, even the pynndescent
+On held-out n=10k, even the pynndescent
 baseline lands at 0.896; i.e. the 0.95 target is genuinely hard at this
 scale on uniform Gaussian for *any* graph index we have on hand, not just
 ours. Whether the bar is achievable on SIFT or with tuned hyperparameters
@@ -89,7 +87,7 @@ is the natural next experiment.
 These tables predate the held-out-query fix. They sampled the 200 queries
 directly from the indexed set `X`, which inflates recall (the index trivially
 recovers the query itself as its own top-1). Kept here so the gap to §1.1 is
-visible. **For citation / reviewer-facing comparisons, use §1.1.**
+visible. **Use §1.1 for comparisons.**
 
 <details>
 <summary>Older (in-set) tables (click to expand)</summary>
@@ -244,7 +242,7 @@ gated by algorithmic cost. The chunked builder in the proposal targets the
   over single-pass at the prototype's scale (see §2.3); the file format
   supports the algorithm faithfully end-to-end.
 - mmap vs eager runs identical algorithm over identical bytes, with a
-  measured warm-cache latency surcharge in the 1.2×–1.6× range.
+  measured warm-cache latency surcharge in the 1.2×–1.9× range (§2.1).
 
 ### Suggested but not established
 
@@ -255,6 +253,7 @@ gated by algorithmic cost. The chunked builder in the proposal targets the
   (a) tune `M` / `ef_construction` / `pq_m` upward, and (b) run on SIFT —
   graph indices are expected to do better on a clustered real dataset than
   on N(0, I). Neither has been tried.
+  *(A later SIFT10K run is recorded in §8.)*
 - That the mmap layer adds an acceptable cost on a real on-disk regime. The
   ~1.2–1.9× surcharge measured in §2.1 is a warm-cache measurement, not a
   cold-cache one, and the proposal's 3–5× envelope is vs in-memory HNSW,
@@ -284,7 +283,7 @@ gated by algorithmic cost. The chunked builder in the proposal targets the
 
 ---
 
-## 4. Honest read on the proposal's success criteria
+## 4. Reading the proposal's success criteria
 
 The Part A proposal stated:
 
@@ -299,11 +298,12 @@ bar is genuinely hard for graph indices on uniform Gaussian at this scale,
 rather than a specific deficiency of our build. Whether bumping `M`,
 `ef_construction`, or `pq_m`, or moving to a clustered dataset like SIFT,
 would close the gap is plausible but not yet measured.
+*(A later SIFT10K run with the same hyperparameters is recorded in §8.)*
 
 **Latency.** We do not have a faithful "3–5× in-memory HNSW" measurement —
 `pynndescent` is JIT-compiled while our prototype is interpreted Python, so
 the ratio mixes algorithmic and implementation cost. The eager-vs-mmap ratio
-(1.2–1.6× at warm cache) tells us how much overhead the mmap path itself
+(1.2–1.9× at warm cache, §2.1) tells us how much overhead the mmap path itself
 adds inside the same Python pipeline; it does not tell us where the future
 DuckDB extension would land against `hnswlib`. The latency claim should be
 considered open.
@@ -387,9 +387,9 @@ Gaussian n=10k run (M=32, ef_construction=96, pq_m=16).
 
 - **The proposal's recall@10 ≥ 0.95 bar is cleared decisively on real data —
   0.998 already at L=64** — with the very hyperparameters that miss it on
-  Gaussian (§1.1: 0.876 at n=10k, L=256). This confirms what §1.3 and §4
-  could only hypothesise: the miss was a property of uniform N(0, I) (no
-  cluster structure for the graph and PQ to exploit), not of the index. On
+  Gaussian (§1.1: 0.876 at n=10k, L=256). This is consistent with what §1.3
+  and §4 hypothesised: the miss reflects uniform N(0, I) (no cluster structure
+  for the graph and PQ to exploit) rather than the index itself. On
   clustered data the PQ codes are far less lossy and the Vamana graph far
   easier to navigate.
 - The prototype also lands **above the untuned pynndescent baseline (0.943)**

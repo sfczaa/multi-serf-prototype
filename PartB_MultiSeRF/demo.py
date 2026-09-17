@@ -48,17 +48,16 @@ def main():
     t2 = time.perf_counter()
     adaptive = ms.AdaptiveIndex(cs1, csK, tau=0.15)
     print(f"built SeRF+ResidualB (K=1):  {t1 - t0:5.1f}s, {cs1.n_edges()} edges")
-    print(f"built Multi-SeRF   (K={K}): {t2 - t1:5.1f}s, {csK.n_edges()} edges "
-          f"(bucketing is ~free in space and builds faster)\n")
+    print(f"built Multi-SeRF   (K={K}): {t2 - t1:5.1f}s, {csK.n_edges()} edges\n")
 
     alpha_grid = [1, 2, 4, 8, 16, 32, 64, 128, 256]
     arms = [("SeRF+ResidualB", arm_fn(cs1)),
             (f"Multi-SeRF K={K}", arm_fn(csK)),
             ("Adaptive router", arm_fn(adaptive))]
 
-    for s_B, story in [(0.01, "narrow B window -> bucket routing shines"),
-                       (0.10, "medium window -> still ahead"),
-                       (0.50, "wide window -> single graph is the right tool")]:
+    for s_B, story in [(0.01, "narrow B window"),
+                       (0.10, "medium B window"),
+                       (0.50, "wide B window")]:
         print(f"== B selectivity {s_B:.0%}: {story}")
         branges = gen_ranges(NQ, s_B, seed=1000 + int(s_B * 1e4))
         aranges = gen_ranges(NQ, 1.0, seed=777)
@@ -78,8 +77,6 @@ def main():
                   f"({rel} vs baseline; {note})")
         print()
 
-    print("Takeaway: routing by the B predicate wins when it is selective, and")
-    print("the adaptive router falls back to the single graph when it is not.")
     print("Full experiments: run_experiments_partB.py / run_adaptive.py;")
     print("recorded results and analysis: results.md")
 

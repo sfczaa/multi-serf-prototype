@@ -255,7 +255,7 @@ independent and fixed; only the dataset changes):
 
 The narrow-B cell is **grid-quantised**: the baseline clears recall 0.9 at
 α=256 on seed 0 but at α=128 on seeds 1–2, and since the α grid doubles per
-step, the ratio jumps ~2× on that boundary. The honest headline is therefore
+step, the ratio jumps ~2× on that boundary. The headline is therefore
 **15–25× at s_B=1%** (and a stable 3.5–4.0× at 5%), not the single-seed 24.6×.
 Criterion (1) (≥2× at s_B≤5%) holds on every seed; the wide-B rows are stable
 (0.38–0.43× at 50%). `results_partB_seed1.json`, `results_partB_seed2.json`.
@@ -290,7 +290,7 @@ the caveat: one correlation pattern, one strength, still synthetic.
 
 At 4× the data, the advantage **grows across the board**: the crossover moves
 past s_B=25%, and at 50% the ratio rises from 0.43× to 0.85× — nominally above
-criterion (2)'s 0.83 bar, though from a single nq=50 run, so read it as "at
+criterion (2)'s 0.80 bar, though from a single nq=50 run, so read it as "at
 the threshold", not established. The mechanism is visible in the α columns:
 the baseline's required over-fetch grows with n (α=128 at s_B=5%, vs 32 at
 n=5k) while Multi-SeRF's stays flat (α=2). This is consistent with §6's scale
@@ -378,7 +378,7 @@ data. (Multi-SeRF still dominated — higher recall *and* ~14× the QPS — but
 - The headline mechanism **transfers to real vectors**: 14.7× at 1%, 3.6× at
   5%, criterion (1) met. The crossover sits slightly earlier (~10–12%) than on
   synthetic data at the same n-per-bucket.
-- Honest scope: real vectors, synthetic independent attributes, n=10k, one
+- Scope: real vectors, synthetic independent attributes, n=10k, one
   run; and the result needed graph parameters retuned (M=32) — a sensitivity a
   production system would have to manage.
 
@@ -410,9 +410,9 @@ At 20× the headline dataset, the picture changes qualitatively:
   faster *and* the only arm meeting the floor). At s_B=10–50%, both arms clear
   recall 0.9 and Multi-SeRF is faster (17.3× / 8.6× / 5.0×). The wide-B
   crossover of n=5k is gone: the per-bucket graphs (6,250 points each) reach
-  the recall floor with far smaller ef than one 100k-node graph — the wide-B
-  penalty seen in §1–2 is a small-n artifact of this implementation, not a
-  property that worsens with scale.
+  the recall floor with far smaller ef than one 100k-node graph. In this single
+  run, the wide-B penalty seen in §1–2 did not persist at n=100k, which suggests
+  a small-n effect of this implementation rather than one that worsens with scale.
 - Trend across n for the 1% cell: 15–25× (5k) → 15.5× (20k) → 22.5× (100k);
   and for the 50% cell: 0.38–0.43× (5k) → 0.85× (20k) → 5.0× (100k).
 
@@ -453,7 +453,7 @@ Adaptive/SeRF QPS ratio, with the fraction of queries routed to buckets:
   the 10% win entirely (0% routed → 1.04×): safe but wasteful. **τ too large
   (0.50) over-routes**: it inherits the wide-B penalty it was supposed to
   avoid (0.67× at 25%, 0.51× at 50%).
-- Honest reading of the noise: cells where adaptive routes 0% run the *same
+- Reading the noise: cells where adaptive routes 0% run the *same
   arm* as the baseline, so their ratio is pure run-to-run timing variance —
   here spanning 0.75–1.24×. Treat ±25% as the noise band on any single cell,
   consistent with §9.1. (Same reason the CS/SeRF 1% cell reads 45.8× in this
@@ -484,7 +484,7 @@ cannot retune per query class.
   graph instead of paying K=16's multi-bucket cost.
 - The baseline pays for the whole stream at once: the 40% narrow queries force
   α=128 *for every query*, dropping it to 26 QPS.
-- Caveats, honestly: single run, single seed, one hand-picked mix. The recall
+- Caveats: single run, single seed, one hand-picked mix. The recall
   floor is on the **stream mean** (0.92); per-class recall is not
   individually floored, and the narrow classes sit closest to the boundary.
   A wide-heavy mix would favour K=1/K=4 and shrink adaptive's margin toward

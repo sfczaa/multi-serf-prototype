@@ -222,10 +222,10 @@
   </table>
 
   <p class="fineprint" style="margin-top:18px">
-    Honest notes: B is uniform in this run, so the equal-frequency buckets are also visually equal-width.
-    The wide-window slowdown (0.65x at 25%, 0.43x at 50%) is real at n=5k — a query-adaptive router
-    removes it (27.3x at 1% <em>and</em> 1.00x at 50%; <code>results.md</code> §10), and it fades with
-    scale (§12). Full write-up, caveats, and reproduction commands: <code>README.md</code> and
+    Notes: B is uniform in this run, so the equal-frequency buckets are also visually equal-width.
+    The wide-window slowdown (0.65x at 25%, 0.43x at 50%) is measured at n=5k. In a single run, a
+    query-adaptive router kept 27.3x at 1% <em>and</em> reached 1.00x at 50% (<code>results.md</code> §10),
+    and single larger-n runs show the slowdown shrinking (§12). Full write-up, caveats, and reproduction commands: <code>README.md</code> and
     <code>results.md</code> in this directory.
   </p>
 </main>

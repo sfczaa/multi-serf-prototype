@@ -54,7 +54,7 @@ QPS/recall difference between **Multi-SeRF** and **SeRF+ResidualB** is
 attributable to the B-bucketing alone. This means the prototype's headline
 claim does **not** depend on `SegmentGraph1D` being a perfect reproduction of
 SeRF; it only has to be a *consistent, reasonable* range-filtered ANN that is
-used identically across arms. That is a much weaker (and honestly defensible)
+used identically across arms. That is a much weaker (and defensible)
 requirement than "we re-implemented SeRF correctly."
 
 ---
@@ -162,8 +162,9 @@ QueryCS(q, [a_lo,a_hi], [b_lo,b_hi], k, α):
 - **Disjoint** bucket: skipped entirely; this is where the QPS win comes from
   when `[b_lo,b_hi]` is narrow.
 
-`α ∈ [1.5, 3]` is the only Multi-SeRF parameter that does not appear in pure
-SeRF; it compensates for candidates lost to the boundary residual filter.
+The over-fetch `α` (swept over a doubling grid in the experiments) is the only
+Multi-SeRF query parameter that does not appear in pure SeRF; it compensates for
+candidates lost to the boundary residual filter.
 
 ---
 
@@ -187,7 +188,7 @@ graph methods share `SegmentGraph1D` (see §1.1).
 |---|---|---|
 | dataset | synthetic Gaussian vectors + 2 synthetic ordered attrs | Amazon ~500K, Airbnb ~200K (real embeddings) |
 | n | 5k–100k | 200k–500k |
-| dim | 64–128 | 384 |
+| dim | 32 (synthetic), 128 (SIFT10K) | 384 |
 | index | in-memory `SegmentGraph1D` | persisted SeRF 2D segment graph |
 | A-range handling | segment graph (lower) + residual (upper) | full 2D segment graph |
 

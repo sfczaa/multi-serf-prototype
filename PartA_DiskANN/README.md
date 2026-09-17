@@ -8,7 +8,7 @@ full-precision rerank. The future DuckDB extension would swap the OS-file
 reader for a `BufferManager::Pin(block_id)` call on the same byte layout.
 
 This is the **secondary systems prototype** in this repository; the primary
-portfolio project is [PartB_MultiSeRF](../PartB_MultiSeRF/README.md). This
+prototype is [PartB_MultiSeRF](../PartB_MultiSeRF/README.md). This
 directory is the **algorithmic kernel**, not the DuckDB extension; see
 `design_notes.md` for what is and is not in scope.
 
@@ -79,8 +79,8 @@ Useful flags:
 
 Queries are drawn from an **independent** Gaussian (seed = 12345), not sampled
 from the indexed set. SIFT mode uses the dataset's own query file. Sampling
-queries from the index inflates recall and is the kind of mistake that gets
-flagged in review; `run_experiments.py` no longer supports that mode.
+queries from the index inflates recall, so `run_experiments.py` does not
+support that mode.
 
 ### SIFT example
 
@@ -96,8 +96,8 @@ python run_experiments.py --dataset sift --sift-dir ./siftsmall \
 
 A siftsmall run is recorded in `results.md` §8 (`results_siftsmall.json`):
 **recall@10 = 0.998 at L=64** with the same hyperparameters that miss the
-0.95 bar on Gaussian — the recall gap in the headline tables is a property
-of uniform synthetic data, not of the index. Caveats (10k vectors, 100
+0.95 bar on Gaussian, consistent with the recall gap in the headline tables
+coming from uniform synthetic data rather than the index. Caveats (10k vectors, 100
 corpus queries, single run) in §8.
 
 ## Reading the results

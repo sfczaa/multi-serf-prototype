@@ -6,7 +6,7 @@
 >   2. Beam Search with PQ pruning + full-precision rerank retains recall ≥ 0.95;
 >   3. query latency stays within 3–5× of an in-memory graph baseline at the same recall.
 >
-> What is intentionally *not* in scope here: DuckDB block manager integration, MVCC, transactions, multi-shard merge, and a SQL planner hook. Those are the items in the proposal that genuinely require modifying DuckDB and are out of reach for a 1-week prototype.
+> What is intentionally *not* in scope here: DuckDB block manager integration, MVCC, transactions, multi-shard merge, and a SQL planner hook. Those are the items in the proposal that genuinely require modifying DuckDB and are out of scope for this prototype.
 
 ---
 
@@ -93,7 +93,7 @@ VamanaPass(alpha):
             if |G[q].nbrs| > M: G[q].nbrs = RobustPrune(q, G[q].nbrs, alpha, M)
 ```
 
-This is the in-memory variant of the Vamana build, run twice: once at α=1.0 and again at α=1.2, which is the DiskANN paper's Section 3 procedure. The second pass keeps each node's current neighbors in the candidate set, so it tightens the graph the first pass built instead of rebuilding it. The two passes carry real weight: on the older in-set runs, a single α=1.2 pass measured recall@10 = 0.695 at n=10k against 0.900 for the pair (`results.md` §2.3). The proposal's "chunked, shard-then-merge" build is what you'd use when even the graph doesn't fit in RAM — we don't need it at the scale this prototype runs (≤ 100k vectors), and the chunked builder is **not implemented**. It is listed under §6 "What this prototype does NOT prove" as future work; the algorithmic reference is DiskANN §3.
+This is the in-memory variant of the Vamana build, run twice: once at α=1.0 and again at α=1.2, which is the DiskANN paper's Section 3 procedure. The second pass keeps each node's current neighbors in the candidate set, so it tightens the graph the first pass built instead of rebuilding it. The two passes carry real weight: on the older in-set runs, a single α=1.2 pass measured recall@10 = 0.695 at n=10k against 0.900 for the pair (`results.md` §2.3). The proposal's "chunked, shard-then-merge" build is what you'd use when even the graph doesn't fit in RAM — we don't need it at the scale this prototype runs (≤ 10k vectors), and the chunked builder is **not implemented**. It is listed under §6 "What this prototype does NOT prove" as future work; the algorithmic reference is DiskANN §3.
 
 **RobustPrune** is the standard Vamana α-pruning rule: keep a neighbor only if no already-kept neighbor is α-closer to it than the source node is. α=1.2 is the DiskANN default.
 
@@ -134,7 +134,7 @@ Query(q, k, L):                              # L = beam width, L ≥ k
 
 | | scope of prototype | scope of full Part A |
 |---|---|---|
-| dataset size | 10k–100k vectors | 1M–10M (proposal target); 50M aspirational |
+| dataset size | 1k–10k vectors (as run) | 1M–10M (proposal target); 50M aspirational |
 | dim | 128 (SIFT) | same |
 | storage | OS file (mmap) | DuckDB block manager |
 | build mode | in-memory Vamana | chunked + shard merge |
@@ -174,7 +174,7 @@ These are targets, not guarantees; see `results.md` for what the prototype actua
 - `proto-mmap` latency within a small multiple of `proto-eager`, quantifying the mmap surcharge, *not* a cold-cache disk surcharge
 - on-disk footprint approximately `n × (4·M + pq_m + 4·dim) + overhead`; we verify the constant factor
 
-`proto-eager` and `proto-mmap` are the same algorithm over the same bytes, so any recall difference would be a bug; latency differences are attributable to the storage path. This setup validates the *algorithmic* half of Part A and gives a lower-bound read on the I/O cost. The *systems* half — DuckDB buffer pool, MVCC, cold-cache behaviour at scale — remains future work and is honest to call out as such in the writeup.
+`proto-eager` and `proto-mmap` are the same algorithm over the same bytes, so any recall difference would be a bug; latency differences are attributable to the storage path. This setup validates the *algorithmic* half of Part A and gives a lower-bound read on the I/O cost. The *systems* half — DuckDB buffer pool, MVCC, cold-cache behaviour at scale — remains future work.
 
 ## 6. What this prototype does NOT prove
 

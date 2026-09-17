@@ -12,8 +12,8 @@ The project answers one focused question:
 The answer from this prototype is: **yes, when the `B` predicate is selective**.
 On synthetic data, Multi-SeRF reaches the recall floor while improving QPS over
 the `SeRF+ResidualB` baseline by 15–25x at 1% `B` selectivity and 3.5–4x at 5%
-(range over three data seeds), and the advantage grows with n. A query-adaptive
-router on top removes the wide-window penalty entirely.
+(range over three data seeds), and the advantage grew with n in the larger-n runs. In a
+single run, a query-adaptive router brought the 50% case back to parity (1.00x).
 
 **Quick start**:
 
@@ -126,11 +126,11 @@ which both of the proposal's success criteria hold simultaneously. See
 |---|---|
 | 3 data seeds (main config) | 1% ratio spans 15.1–24.6x; 5% is a stable 3.5–4.0x. The 1% spread is grid-quantisation: the baseline needs `α=128` or `α=256` depending on seed, and the α grid doubles per step. The ≥2x criterion at `s_B ≤ 5%` holds on every seed. |
 | B correlated with vectors (`--b-corr 0.8`, rank corr ≈ 0.78) | 14.5x / 3.8x / 2.8x / 0.76x / 0.41x — inside the seed-variance envelope; no degradation observed at this correlation strength. |
-| Real vectors: SIFT10K (128-d, corpus queries) | With M=32/ef_build=200, the pattern reproduces: **14.7x** at 1%, 3.6x at 5%, crossover ~10–12%. Honest catch: at the default M=16 build, *neither* arm reaches recall 0.9 on real clustered vectors — the simplified graph needs stronger build parameters off synthetic data (both runs kept). |
+| Real vectors: SIFT10K (128-d, corpus queries) | With M=32/ef_build=200, the pattern reproduces: **14.7x** at 1%, 3.6x at 5%, crossover ~10–12%. At the default M=16 build, *neither* arm reaches recall 0.9 on real clustered vectors — the simplified graph needs stronger build parameters off synthetic data (both runs kept). |
 | n = 20,000 (single run, nq=50) | Advantage grows across the board: 15.5x / 11.2x / 6.5x / 2.9x / 0.85x. The crossover moves past 25% B selectivity. |
-| n = 100,000 (single run, nq=50) | At 1–5%, Multi-SeRF clears recall 0.9 while the baseline does not at the tested α cap (512) — the 22.5x/25.1x ratios there compare against the baseline's best sub-floor point. At 10–50%, both clear recall 0.9 and Multi-SeRF is faster: 17.3x / 8.6x / **5.0x at 50%**. The wide-B penalty is a small-n artifact. |
+| n = 100,000 (single run, nq=50) | At 1–5%, Multi-SeRF clears recall 0.9 while the baseline does not at the tested α cap (512) — the 22.5x/25.1x ratios there compare against the baseline's best sub-floor point. At 10–50%, both clear recall 0.9 and Multi-SeRF is faster: 17.3x / 8.6x / **5.0x at 50%**. In this single run the wide-B penalty did not persist. |
 
-See `results.md` §9–12 for the full tables and the honest caveats on each
+See `results.md` §9–12 for the full tables and the caveats on each
 check, and the rest of it for the K-sensitivity tables and the full write-up.
 
 ## Files
@@ -263,17 +263,9 @@ reruns experiments.
 - Absolute QPS should not be compared to production ANN systems. The meaningful
   evidence is the like-for-like ratio between Multi-SeRF and SeRF+ResidualB.
 - The wide-B penalty at n=5k (0.4x at 50%) fades with scale (0.85x at n=20k,
-  5.0x at n=100k) and is removed at any scale by the adaptive router; but the
+  5.0x at n=100k, single runs) and was brought to parity by the adaptive router at n=5k; but the
   n=1M+ regime where SeRF-class methods are usually evaluated remains untested.
 - The adaptive router's threshold τ is workload- and scale-dependent and was
   set from the measured n=5k crossover, not learned.
 - `sql_demo.py` is a scalar-UDF demo, not a DBMS integration: no extension,
   persistence, or planner hook.
-
-## Summary
-
-> Built a Python prototype for multi-attribute range-filtered vector search:
-> `B`-bucket routing improves QPS by 15–25x over a residual-filter baseline at
-> 1% secondary-predicate selectivity (recall ≥ 0.9; 3 seeds, real SIFT vectors,
-> growing with n up to 100k), and a query-adaptive router removes the
-> wide-window penalty, meeting both of the proposal's success criteria at once.
