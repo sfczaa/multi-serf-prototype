@@ -84,7 +84,7 @@ def fig_recall_vs_l():
             continue                 # gaussian pynndescent refs only
         pynn = rows["pynndescent"]["recall@10"]
         ax.axhline(pynn, color=color, linewidth=1.0, linestyle=(0, (1, 2)))
-        ax.text(64, pynn + 0.004, f"pynndescent ({label}): {pynn:.3f}",
+        ax.text(64, pynn + 0.012, f"pynndescent ({label}): {pynn:.3f}",
                 color=color, fontsize=8)
     ax.axhline(0.95, color=MUTED, linewidth=1.0, linestyle=(0, (4, 3)))
     ax.text(330, 0.955, "proposal target 0.95", color=MUTED, fontsize=8.5,
@@ -101,8 +101,9 @@ def fig_recall_vs_l():
     ax.set_title("Recall misses the 0.95 bar on held-out Gaussian, and "
                  "clears it on real SIFT10K", fontsize=11, color=INK,
                  loc="left", pad=24)
-    ax.text(0, 1.03, "Gaussian: dim=128, nq=200 held-out · SIFT10K: corpus "
-                     "queries, nq=100 · pynndescent refs are Gaussian runs",
+    ax.text(0, 1.03, "Gaussian: dim=128, nq=200 held-out · SIFT10K: official "
+                     "siftsmall query set, nq=100 · pynndescent refs are "
+                     "Gaussian runs",
             transform=ax.transAxes, color=INK_2ND, fontsize=8.5, va="bottom")
     ax.legend(loc="lower right", frameon=False, fontsize=9)
     fig.tight_layout()

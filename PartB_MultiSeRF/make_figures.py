@@ -188,7 +188,9 @@ def fig_recall_qps():
                 continue
             ax.annotate(f"α={c['alpha']:g}", (c["qps"], c["recall"]),
                         xytext=(0, -14), textcoords="offset points",
-                        ha="center", color=MUTED, fontsize=7.5)
+                        ha="center", color=MUTED, fontsize=7.5,
+                        bbox=dict(boxstyle="round,pad=0.15", fc="white",
+                                  ec="none", alpha=0.85))
         # ring the reported point: the first α that clears the recall floor
         ax.plot(best["qps"], best["recall"], marker="o", markersize=11,
                 mfc="none", mec=color, mew=1.5)
@@ -219,7 +221,8 @@ def fig_mechanism():
 
     fig, axes = plt.subplots(1, 2, figsize=(9.6, 4.6), dpi=200)
     K = 8
-    b_lo, b_hi = 0.38, 0.50          # query B window (schematic)
+    b_lo, b_hi = 0.33, 0.46          # query B window (schematic): straddles
+                                     # two buckets instead of ending on an edge
     box = dict(x=0.10, y=0.12, w=0.84, h=0.74)
 
     def base(ax, title):
@@ -325,9 +328,11 @@ def fig_adaptive():
     ax.set_xlabel("B-range selectivity")
     ax.set_ylabel("QPS ratio vs SeRF+ResidualB")
     ax.set_title("Query-time routing keeps the narrow-B win and the wide-B parity",
-                 fontsize=11, color=INK, loc="left", pad=24)
+                 fontsize=11, color=INK, loc="left", pad=34)
     ax.text(0, 1.03, "QPS at recall ≥ 0.9 · n=5000, K=16, τ=0.15 · point labels: "
-                     "fraction of queries routed to the bucketed index",
+                     "fraction of queries routed to the bucketed index\n"
+                     "Separate single run: this fixed-K=16 line is not the headline "
+                     "run (3.0× vs 2.1× at 10%), so read ratios, not small gaps",
             transform=ax.transAxes, color=INK_2ND, fontsize=8.5, va="bottom")
     ax.legend(loc="upper right", frameon=False, fontsize=9)
     fig.tight_layout()
