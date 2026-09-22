@@ -6,13 +6,13 @@ on-disk index.
 
 ## Part B: Multi-SeRF
 
-**Problem.** Vector similarity search often needs structured filters, for
+Problem. Vector similarity search often needs structured filters, for
 example "find nearest vectors where attribute A and attribute B are both in a
 range." A common approach is to search a vector index first, then post-filter
 by the structured predicates. This wastes work when the second range predicate
 is selective.
 
-**Idea.** Multi-SeRF uses a Compound Segment layout:
+Idea. Multi-SeRF uses a Compound Segment layout:
 
 1. Partition the dataset by a secondary ordered attribute `B`.
 2. Build a simplified SeRF-style segment graph over primary attribute `A`
@@ -25,28 +25,28 @@ residual filter.
 
 ![Schematic: baseline residual-B filtering vs Multi-SeRF B-bucket routing](PartB_MultiSeRF/figures/fig_mechanism.png)
 
-An interactive version of this schematic — with the recorded QPS numbers
-attached — is available as a [local browser demo](PartB_MultiSeRF/demo_visual.html)
+An interactive version of this schematic - with the recorded QPS numbers
+attached - is available as a [local browser demo](PartB_MultiSeRF/demo_visual.html)
 (single-file HTML; no dependencies).
 
-**Headline result.** On synthetic data, Multi-SeRF is much faster when the
+Headline result. On synthetic data, Multi-SeRF is much faster when the
 `B` predicate is narrow (recorded headline run; whiskers below show the range
 over three data seeds):
 
 | B selectivity | Multi-SeRF vs SeRF+ResidualB |
 |---:|---:|
-| 1% | 24.6x QPS (15–25x over 3 seeds) |
-| 5% | 3.55x QPS (3.5–4.0x) |
-| 10% | 2.10x QPS (2.1–2.7x) |
-| 25% | 0.65x QPS (0.65–0.76x) |
-| 50% | 0.43x QPS (0.38–0.43x) |
+| 1% | 24.6x QPS (15-25x over 3 seeds) |
+| 5% | 3.55x QPS (3.5-4.0x) |
+| 10% | 2.10x QPS (2.1-2.7x) |
+| 25% | 0.65x QPS (0.65-0.76x) |
+| 50% | 0.43x QPS (0.38-0.43x) |
 
-![Headline K=16 run: QPS ratio of Multi-SeRF over SeRF+ResidualB by B selectivity, with min–max whiskers over 3 data seeds](PartB_MultiSeRF/figures/fig_main_K16.png)
+![Headline K=16 run: QPS ratio of Multi-SeRF over SeRF+ResidualB by B selectivity, with min-max whiskers over 3 data seeds](PartB_MultiSeRF/figures/fig_main_K16.png)
 
 The result supports the main claim: bucket routing helps most when the second
 range predicate is selective. It also shows the trade-off: when the
 `B` predicate is wide, Multi-SeRF searches many buckets and can become slower
-than a single baseline graph, and then **resolves that trade-off** with a
+than a single baseline graph, and then resolves that trade-off with a
 query-adaptive router that keeps both indexes and picks per query, reaching
 27x on narrow windows while staying at parity (1.00x) on wide ones. Robustness
 checks (three data seeds, a correlated-B run, real SIFT10K vectors, larger-n

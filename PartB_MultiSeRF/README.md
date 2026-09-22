@@ -1,6 +1,6 @@
 # Multi-SeRF Prototype: Multi-Attribute Range-Filtered ANN
 
-This is a standalone Python prototype for **Multi-SeRF**, a Compound Segment
+This is a standalone Python prototype for Multi-SeRF, a Compound Segment
 approach for vector similarity search with multiple range predicates.
 
 The project answers one focused question:
@@ -9,13 +9,13 @@ The project answers one focused question:
 > reduce wasted post-filtering by partitioning the data on `B` and only
 > searching buckets whose `B` range overlaps the query?
 
-The answer from this prototype is: **yes, when the `B` predicate is selective**.
+The answer from this prototype is: yes, when the `B` predicate is selective.
 On synthetic data, Multi-SeRF reaches the recall floor while improving QPS over
-the `SeRF+ResidualB` baseline by 15–25x at 1% `B` selectivity and 3.5–4x at 5%
+the `SeRF+ResidualB` baseline by 15-25x at 1% `B` selectivity and 3.5-4x at 5%
 (range over three data seeds), and the advantage grew with n in the larger-n runs. In a
 single run, a query-adaptive router brought the 50% case back to parity (1.00x).
 
-**Quick start**:
+Quick start:
 
 ```bash
 py -3 demo.py       # narrated demo of the routing mechanism (needs only numpy)
@@ -52,7 +52,7 @@ it can skip unrelated buckets before graph search.
 
 ![Schematic: baseline residual-B filtering searches the whole space, Multi-SeRF routes to the buckets overlapping the query B window](figures/fig_mechanism.png)
 
-Multi-SeRF uses a **Compound Segment** layout:
+Multi-SeRF uses a Compound Segment layout:
 
 1. Sort data by secondary attribute `B`.
 2. Partition the data into `K` equal-frequency `B` buckets.
@@ -61,7 +61,7 @@ Multi-SeRF uses a **Compound Segment** layout:
 4. For a query, search only buckets whose `B` range overlaps `[b_lo, b_hi]`.
 5. Merge candidates and rerank by exact vector distance.
 
-This is **not** a full SeRF reimplementation. The per-bucket graph is a
+This is not a full SeRF reimplementation. The per-bucket graph is a
 deliberately simplified, SeRF-inspired `SegmentGraph1D`. The important
 experimental control is that both Multi-SeRF and the `SeRF+ResidualB` baseline
 share the same graph implementation, so their QPS/recall difference isolates
@@ -80,7 +80,7 @@ Gaussian vectors with independent uniform attributes.
 | 25% | 300.8 | 196.1 | 0.65x |
 | 50% | 281.8 | 119.8 | 0.43x |
 
-![Headline K=16 run: QPS ratio of Multi-SeRF over SeRF+ResidualB by B selectivity, with the ratio=1 parity line and min–max whiskers over 3 data seeds](figures/fig_main_K16.png)
+![Headline K=16 run: QPS ratio of Multi-SeRF over SeRF+ResidualB by B selectivity, with the ratio=1 parity line and min-max whiskers over 3 data seeds](figures/fig_main_K16.png)
 
 "QPS at recall ≥ 0.9" means each method raises its over-fetch multiplier `α`
 until mean recall clears 0.9, and the QPS at that smallest `α` is reported.
@@ -116,7 +116,7 @@ go to the buckets, wide windows to the single graph.
 ![Adaptive routing tracks fixed K=16 where bucketing wins and returns to parity where it loses](figures/fig_adaptive.png)
 
 With τ=0.15 on the main config, adaptive routing keeps the narrow-B win
-(27x at 1%) **and** wide-B parity (1.00x at 50%) — the first configuration in
+(27x at 1%) and wide-B parity (1.00x at 50%) - the first configuration in
 which both of the proposal's success criteria hold simultaneously. See
 `results.md` §10.
 
@@ -124,13 +124,13 @@ which both of the proposal's success criteria hold simultaneously. See
 
 | check | result |
 |---|---|
-| 3 data seeds (main config) | 1% ratio spans 15.1–24.6x; 5% is a stable 3.5–4.0x. The 1% spread is grid-quantisation: the baseline needs `α=128` or `α=256` depending on seed, and the α grid doubles per step. The ≥2x criterion at `s_B ≤ 5%` holds on every seed. |
-| B correlated with vectors (`--b-corr 0.8`, rank corr ≈ 0.78) | 14.5x / 3.8x / 2.8x / 0.76x / 0.41x — inside the seed-variance envelope; no degradation observed at this correlation strength. |
-| Real vectors: SIFT10K (128-d, corpus queries) | With M=32/ef_build=200, the pattern reproduces: **14.7x** at 1%, 3.6x at 5%, crossover ~10–12%. At the default M=16 build, *neither* arm reaches recall 0.9 on real clustered vectors — the simplified graph needs stronger build parameters off synthetic data (both runs kept). |
-| n = 20,000 (single run, nq=50) | Advantage grows across the board: 15.5x / 11.2x / 6.5x / 2.9x / 0.85x. The crossover moves past 25% B selectivity. |
-| n = 100,000 (single run, nq=50) | At 1–5%, Multi-SeRF clears recall 0.9 while the baseline does not at the tested α cap (512) — the 22.5x/25.1x ratios there compare against the baseline's best sub-floor point. At 10–50%, both clear recall 0.9 and Multi-SeRF is faster: 17.3x / 8.6x / **5.0x at 50%**. In this single run the wide-B penalty did not persist. |
+| 3 data seeds (main config) | 1% ratio spans 15.1-24.6x; 5% is a stable 3.5-4.0x. The 1% spread is grid-quantisation: the baseline needs `α=128` or `α=256` depending on seed, and the α grid doubles per step. The ≥2x criterion at `s_B ≤ 5%` holds on every seed. |
+| B correlated with vectors (`--b-corr 0.8`, rank corr ≈ 0.78) | 14.5x / 3.8x / 2.8x / 0.76x / 0.41x - inside the seed-variance envelope; no degradation observed at this correlation strength. |
+| Real vectors: SIFT10K (128-d, corpus queries) | With M=32/ef_build=200, the pattern reproduces: 14.7x at 1%, 3.6x at 5%, crossover ~10-12%. At the default M=16 build, *neither* arm reaches recall 0.9 on real clustered vectors - the simplified graph needs stronger build parameters off synthetic data (both runs kept). |
+| n = 20,000 (single run, nq=50) | Ratios are 15.5x / 11.2x / 6.5x / 2.9x / 0.85x. The crossover in this run moves past 25% B selectivity. |
+| n = 100,000 (single run, nq=50) | At 1-5%, Multi-SeRF clears recall 0.9 while the baseline does not at the tested α cap (512) - the 22.5x/25.1x ratios there compare against the baseline's best sub-floor point. At 10-50%, both clear recall 0.9 and Multi-SeRF is faster: 17.3x / 8.6x / 5.0x at 50%. In this single run the wide-B penalty did not persist. |
 
-See `results.md` §9–12 for the full tables and the caveats on each
+See `results.md` §9-12 for the full tables and the caveats on each
 check, and the rest of it for the K-sensitivity tables and the full write-up.
 
 ## Files
@@ -141,7 +141,7 @@ check, and the rest of it for the K-sensitivity tables and the full write-up.
 | `multiserf_proto.py` | `SegmentGraph1D`, `CompoundSegment`, `AdaptiveIndex`, ground truth and recall helpers |
 | `run_experiments_partB.py` | experiment runner for B-selectivity sweeps and QPS-at-recall measurement |
 | `run_adaptive.py` | adaptive-routing experiment: K=1 vs K=16 vs query-time routing |
-| `run_adaptive_tau_sweep.py` | routing-threshold sensitivity: τ ∈ {0.05…0.50} vs the same baselines |
+| `run_adaptive_tau_sweep.py` | routing-threshold sensitivity: τ ∈ {0.05...0.50} vs the same baselines |
 | `run_mixed_workload.py` | mixed-selectivity stream, one shared α per index (K=1/4/16/adaptive) |
 | `demo.py` | quick demo: build both indexes, watch the routing on 3 window widths |
 | `sql_demo.py` | DuckDB scalar-UDF demo: the index answering a filtered k-NN question in SQL |
@@ -161,7 +161,7 @@ check, and the rest of it for the K-sensitivity tables and the full write-up.
 | `results_partB_adaptive.json` | adaptive-routing run (K=1 / K=16 / adaptive) |
 | `results_partB_adaptive_tau.json` | τ sensitivity: adaptive holds for τ ∈ [0.10, 0.25] |
 | `results_partB_mixed_workload.json` | mixed workload: adaptive gives the best stream throughput |
-| `results_partB_sift.json` | SIFT10K, default M=16 build (recall floor not reached — kept as a negative finding) |
+| `results_partB_sift.json` | SIFT10K, default M=16 build (recall floor not reached - kept as a negative finding) |
 | `results_partB_sift_M32.json` | SIFT10K, M=32/ef_build=200 (headline pattern reproduces) |
 | `results_partB_smoke.json` | small smoke run |
 | `data/` | auto-downloaded datasets (siftsmall); not committed |
@@ -234,18 +234,19 @@ reruns experiments.
 
 - The main success criterion is met: Multi-SeRF is at least 2x faster than
   SeRF+ResidualB for narrow `B` ranges (`s_B <= 5%`) while reaching recall 0.9
-  — and this holds on all three data seeds tested and with B correlated to the
+  - and this holds on all three data seeds tested and with B correlated to the
   vectors.
 - The bucket-routing mechanism is isolated because Multi-SeRF and the baseline
   use the same `SegmentGraph1D` code.
-- The K trade-off is quantified with K=4, K=16, and K=32 runs — and then
-  resolved at query time: the adaptive router meets **both** success criteria
+- The K trade-off is quantified with K=4, K=16, and K=32 runs - and then
+  resolved at query time: the adaptive router meets both success criteria
   simultaneously (27x at 1%, 1.00x at 50%).
 - A restrictive A-range run exercises both A filtering and B bucket routing.
 - The pattern reproduces on real SIFT10K vectors (with a stronger graph build).
-- Scale runs at n=20k and n=100k show the advantage growing with n. At n=100k,
-  Multi-SeRF is faster wherever both arms reach recall 0.9 (10–50%), and at
-  1–5% it clears the floor while the baseline cannot at the tested α cap.
+- Scale runs at n=20k and n=100k show larger ratios than the n=5k run in most
+  reported cells. At n=100k,
+  Multi-SeRF is faster wherever both arms reach recall 0.9 (10-50%), and at
+  1-5% it clears the floor while the baseline cannot at the tested α cap.
 
 ## Limitations
 
@@ -254,7 +255,7 @@ reruns experiments.
   (small per-node edge lists); scaling past n≈100k needs a compiled kernel,
   which is out of scope (results.md §12).
 - Real vectors were tested once (SIFT10K), and only reached the recall floor
-  after retuning build parameters (M=32, ef_build=200) — the default M=16
+  after retuning build parameters (M=32, ef_build=200) - the default M=16
   graph under-connects on clustered real data. Attributes remain synthetic
   everywhere; no dataset with natural attributes was used.
 - Only the main configuration has multi-seed variance data (3 seeds); the K

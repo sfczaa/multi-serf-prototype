@@ -1,6 +1,6 @@
 # Part B Prototype: Multi-SeRF Experiment Results
 
-Standalone Python prototype of the **Compound Segment (CS)** structure proposed
+Standalone Python prototype of the Compound Segment (CS) structure proposed
 in the accompanying Part B proposal. The CS partitions data on a secondary
 ordered attribute *B* into *K* equal-frequency buckets and builds a simplified,
 SeRF-inspired segment graph (`SegmentGraph1D`) over the primary attribute *A*
@@ -8,10 +8,10 @@ inside each bucket; a query searches only the buckets whose *B*-range overlaps
 `[b_lo, b_hi]`.
 
 Hardware: laptop, single-thread Python 3.12 + NumPy. The graph traversal is
-pure Python; absolute QPS is overhead-bound. **Read ratios (Multi-SeRF vs
-SeRF+ResidualB), not absolute QPS.**
+pure Python; absolute QPS is overhead-bound. Read ratios (Multi-SeRF vs
+SeRF+ResidualB), not absolute QPS.
 
-Data: synthetic. `N(0, I)` vectors (dim 32), two **independent** `Uniform[0,1]`
+Data: synthetic. `N(0, I)` vectors (dim 32), two independent `Uniform[0,1]`
 ordered attributes. This is the easy case for bucketing (B is uncorrelated with
 the vectors); the real Amazon/Airbnb datasets in the proposal were not used.
 
@@ -19,20 +19,20 @@ the vectors); the real Amazon/Airbnb datasets in the proposal were not used.
 
 ## 0. Caveats up front (read before the tables)
 
-- **The valid comparison is Multi-SeRF vs SeRF+ResidualB.** Both are pure-Python
+- The valid comparison is Multi-SeRF vs SeRF+ResidualB. Both are pure-Python
   and share the *same* `SegmentGraph1D` code (design_notes §1.1); their ratio
   isolates the B-bucketing. Comparisons to `ExactScan` / `RangeFirstScan` mix in
   a Python-vs-NumPy implementation gap and should not be read as absolute verdicts
   (see §6: at this scale vectorised exact scan actually *wins* outright).
-- **`SegmentGraph1D` is not SeRF.** It is a single-layer proximity graph with
+- `SegmentGraph1D` is not SeRF. It is a single-layer proximity graph with
   edge validity intervals that handles the A *lower* bound natively and the A
   *upper* bound as a residual filter. Faithful to SeRF's "one graph, interval-
   tagged edges" idea, simplified in the ways listed in design_notes §2.
-- **Scale.** n = 5,000. Graph ANN does not pay its overhead off against brute
-  force until n is far larger (SeRF's own results are at n = 1M–10M). The
+- Scale. n = 5,000. Graph ANN does not pay its overhead off against brute
+  force until n is far larger (SeRF's own results are at n = 1M-10M). The
   bucketing *ratio* is the transferable result; the absolute QPS is not.
-- **Single run per cell**, nq = 100 held-out queries, no variance bars.
-- **QPS at recall ≥ 0.9.** Each ANN method increases its over-fetch multiplier
+- Single run per cell, nq = 100 held-out queries, no variance bars.
+- QPS at recall ≥ 0.9. Each ANN method increases its over-fetch multiplier
   `alpha` until mean recall ≥ 0.9, and we report the QPS at that smallest
   (fastest) `alpha`. This is the proposal's reporting axis.
 
@@ -44,22 +44,22 @@ the vectors); the real Amazon/Airbnb datasets in the proposal were not used.
 M=16, ef_build=64. `α` is the over-fetch needed to reach recall 0.9; `buckets`
 is the mean number of the 16 buckets actually searched.
 
-| s_B | pts pass | SeRF+ResidualB QPS @0.9 (α, recall) | Multi-SeRF QPS @0.9 (α, buckets, recall) | **CS / SeRF** |
+| s_B | pts pass | SeRF+ResidualB QPS @0.9 (α, recall) | Multi-SeRF QPS @0.9 (α, buckets, recall) | CS / SeRF |
 |---:|---:|---|---|---:|
-| 1%  | 49   | 25.4 (α=256, r=0.967) | 623.6 (α=8, 1.1/16, r=0.925) | **24.6×** |
-| 5%  | 249  | 142.8 (α=32, r=0.903) | 506.4 (α=2, 1.7/16, r=0.986) | **3.55×** |
-| 10% | 498  | 154.3 (α=32, r=0.941) | 323.3 (α=1, 2.6/16, r=0.980) | **2.10×** |
+| 1%  | 49   | 25.4 (α=256, r=0.967) | 623.6 (α=8, 1.1/16, r=0.925) | 24.6× |
+| 5%  | 249  | 142.8 (α=32, r=0.903) | 506.4 (α=2, 1.7/16, r=0.986) | 3.55× |
+| 10% | 498  | 154.3 (α=32, r=0.941) | 323.3 (α=1, 2.6/16, r=0.980) | 2.10× |
 | 25% | 1247 | 300.8 (α=16, r=0.908) | 196.1 (α=1, 5.0/16, r=0.994) | 0.65× |
 | 50% | 2494 | 281.8 (α=16, r=0.919) | 119.8 (α=1, 9.0/16, r=0.990) | 0.43× |
 
-(For reference: `ExactScan` ≈ 6.5k–8k QPS, `RangeFirstScan` 43.6k → 8.3k QPS as
+(For reference: `ExactScan` ≈ 6.5k-8k QPS, `RangeFirstScan` 43.6k → 8.3k QPS as
 s_B grows. See §6 for why these dominate in absolute terms.)
 
-**The mechanism, confirmed.** At narrow B, the query window overlaps ~1 of 16
+The mechanism, confirmed. At narrow B, the query window overlaps ~1 of 16
 buckets, so Multi-SeRF skips ~15/16 of the data and reaches recall 0.9 with a
 tiny over-fetch (α=8 → 1). SeRF+ResidualB, with no B index, must fetch a huge
 A-neighbourhood (α=256 = 2560 of 5000 points) before residual-filtering B down
-to the ~49 survivors — slow. As B widens, Multi-SeRF visits more buckets
+to the ~49 survivors - slow. As B widens, Multi-SeRF visits more buckets
 (1.1 → 9.0) and the per-bucket search overhead accumulates, so the advantage
 erodes and inverts past s_B ≈ 13%. Note Multi-SeRF's recall is *higher* than the
 baseline's at every row: it reaches the 0.9 bar early and overshoots, because it
@@ -72,11 +72,11 @@ searches a smaller, on-target candidate set.
 Bigger K = finer B-partition = more buckets skipped at narrow B, but more
 independent graph searches at wide B. Sweeping K (full A range, otherwise as §1):
 
-**CS / SeRF+ResidualB QPS ratio, by K and s_B**
+CS / SeRF+ResidualB QPS ratio, by K and s_B
 
 | s_B | K=4 | K=16 | K=32 |
 |---:|---:|---:|---:|
-| 1%  | 4.03× | 24.60× | **32.81×** |
+| 1%  | 4.03× | 24.60× | 32.81× |
 | 5%  | 3.98× | 3.55×  | 3.22× |
 | 10% | 3.79× | 2.10×  | 2.06× |
 | 25% | 1.27× | 0.65×  | 0.50× |
@@ -84,14 +84,14 @@ independent graph searches at wide B. Sweeping K (full A range, otherwise as §1
 
 (`results_partB_K4.json`, `results_partB_main.json`, `results_partB_K32.json`.)
 
-- **Narrow B favours large K.** K=32 peaks at 32.8× (s_B=1%); K=4 only 4.0×,
+- Narrow B favours large K. K=32 peaks at 32.8× (s_B=1%); K=4 only 4.0×,
   because with 4 wide buckets the one overlapping bucket still holds ~1250 points
   and Multi-SeRF must over-fetch heavily (α=64) and residual-filter inside it.
-- **Wide B favours small K.** At s_B=50%, K=4 holds at 0.82× (nearly matching the
+- Wide B favours small K. At s_B=50%, K=4 holds at 0.82× (nearly matching the
   baseline: it runs only ~3 searches) while K=32 drops to 0.31× (it runs ~17).
-- **The crossover (ratio = 1) moves with K:** ≈ 40% for K=4, ≈ 13% for K=16/32.
+- The crossover (ratio = 1) moves with K: ≈ 40% for K=4, ≈ 13% for K=16/32.
 
-So **K is the design lever** between the two success criteria below. No single K
+So K is the design lever between the two success criteria below. No single K
 is best everywhere; the right K depends on the expected B-selectivity of the
 workload.
 
@@ -103,16 +103,16 @@ workload.
 selectivity, so both the bucket routing (B) and the segment graph's A-filtering
 are exercised. K=16.
 
-| s_B | pts pass | SeRF+ResidualB QPS @0.9 (α, recall) | Multi-SeRF QPS @0.9 (α, buckets, recall) | **CS / SeRF** |
+| s_B | pts pass | SeRF+ResidualB QPS @0.9 (α, recall) | Multi-SeRF QPS @0.9 (α, buckets, recall) | CS / SeRF |
 |---:|---:|---|---|---:|
-| 1%  | 13  | 32.9 (α=256, r=0.877 ✗) | 559.6 (α=16, 1.1/16, r=0.931) | **17.0×** |
-| 5%  | 63  | 78.1 (α=64, r=0.917)    | 567.7 (α=2, 1.7/16, r=0.977)  | **7.27×** |
-| 10% | 127 | 106.2 (α=32, r=0.920)   | 300.5 (α=1, 2.6/16, r=0.986)  | **2.83×** |
+| 1%  | 13  | 32.9 (α=256, r=0.877 ✗) | 559.6 (α=16, 1.1/16, r=0.931) | 17.0× |
+| 5%  | 63  | 78.1 (α=64, r=0.917)    | 567.7 (α=2, 1.7/16, r=0.977)  | 7.27× |
+| 10% | 127 | 106.2 (α=32, r=0.920)   | 300.5 (α=1, 2.6/16, r=0.986)  | 2.83× |
 | 25% | 315 | 224.7 (α=16, r=0.910)   | 213.4 (α=1, 5.0/16, r=0.997)  | 0.95× |
 | 50% | 624 | 258.3 (α=16, r=0.925)   | 116.1 (α=1, 9.0/16, r=0.993)  | 0.45× |
 
 The pattern holds with A-filtering active. Notably at s_B=1% the baseline
-**cannot reach recall 0.9 even at α=256** (it tops out at 0.877): with both
+cannot reach recall 0.9 even at α=256 (it tops out at 0.877): with both
 predicates selective, residual-B filtering throws away too much. Multi-SeRF
 reaches 0.931 *and* is 17× faster: the clearest single illustration of SeRF's
 L1 limitation that the proposal set out to fix.
@@ -121,24 +121,24 @@ L1 limitation that the proposal set out to fix.
 
 ## 4. Against the proposal's success criteria
 
-The proposal calls the project successful if **either** holds:
+The proposal calls the project successful if either holds:
 
-> **(1)** Multi-SeRF ≥ 2× QPS over SeRF+ResidualB at `s_B ≤ 5%`, recall floor 0.9.
-> **(2)** Multi-SeRF within 20% of SeRF+ResidualB QPS at `s_B ≥ 50%`.
+> (1) Multi-SeRF ≥ 2× QPS over SeRF+ResidualB at `s_B ≤ 5%`, recall floor 0.9.
+> (2) Multi-SeRF within 20% of SeRF+ResidualB QPS at `s_B ≥ 50%`.
 
-| | criterion (1) — narrow B | criterion (2) — wide B (ratio ≥ 0.80) |
+| | criterion (1) - narrow B | criterion (2) - wide B (ratio ≥ 0.80) |
 |---|---|---|
 | K=4  | 4.0× @1%, 4.0× @5% | 0.82× @50% (met) |
 | K=16 | 24.6× @1%, 3.6× @5% | 0.43× @50% |
 | K=32 | 32.8× @1%, 3.2× @5% | 0.31× @50% |
 | K=16, A=25% | 17× @1%, 7.3× @5% | 0.45× @50% |
 
-- **Criterion (1) is met decisively in every configuration tested**, including
+- Criterion (1) is met decisively in every configuration tested, including
   with a restrictive A predicate. The recall floor of 0.9 is satisfied by
-  Multi-SeRF at the reported points (0.925–0.997).
-- **Criterion (2) is met only at small K (K=4, and only just).** At K≥16 it
+  Multi-SeRF at the reported points (0.925-0.997).
+- Criterion (2) is met only at small K (K=4, and only just). At K≥16 it
   fails clearly: at full bucket coverage Multi-SeRF runs K independent graph
-  searches against the baseline's one, so it is 2–3× *slower* at s_B=50%.
+  searches against the baseline's one, so it is 2-3× *slower* at s_B=50%.
 
 The tested configurations meet criterion (1), satisfying the proposal's
 requirement. Criterion (2) holds only at K=4 in these runs; smaller K also
@@ -162,7 +162,7 @@ Estimated serialised size (12 B/edge + vectors + attributes) and build time:
 | Multi-SeRF K=16 | 155,648 | 2.55 MB | 3.55 |
 | Multi-SeRF K=32 | 151,296 | 2.50 MB | 2.41 |
 
-Bucketing does **not** blow up storage: total edges are roughly constant (each
+Bucketing does not blow up storage: total edges are roughly constant (each
 point keeps ~M neighbours regardless of partitioning), in fact slightly *fewer*
 at larger K (no cross-bucket edges), and build is *faster* at larger K (K small
 graphs of size n/K cost less than one graph of size n). This is consistent with
@@ -174,19 +174,19 @@ by bucket containment, which is nearly free in space.
 ## 6. Why exact scan beats the graph methods here (scale caveat)
 
 In absolute QPS, `RangeFirstScan` (vectorised NumPy: mask, then exact distance
-on survivors) beats *every* graph method at *every* selectivity in these runs —
+on survivors) beats *every* graph method at *every* selectivity in these runs -
 e.g. at s_B=1%, 43.6k QPS vs Multi-SeRF's 624 and SeRF+ResidualB's 25. This is
-**expected and not a defeat of the idea**:
+expected and not a defeat of the idea:
 
 - n=5,000 is tiny. Brute-forcing even the 2,494 survivors at s_B=50% is a single
   vectorised NumPy call; the graph methods traverse node-by-node in interpreted
   Python. The comparison is dominated by NumPy-vs-Python, not by algorithm.
 - Graph ANN earns its keep only when n is large enough that an O(n) scan is the
-  bottleneck; SeRF reports at n=1M–10M. This prototype is a *mechanism* check,
+  bottleneck; SeRF reports at n=1M-10M. This prototype is a *mechanism* check,
   not a scale benchmark.
 
 This is the same discipline as the Part A prototype: do not read absolute
-latency across implementations; read the **like-for-like ratio** (Multi-SeRF vs
+latency across implementations; read the like-for-like ratio (Multi-SeRF vs
 SeRF+ResidualB, identical code modulo bucketing).
 
 ---
@@ -195,28 +195,28 @@ SeRF+ResidualB, identical code modulo bucketing).
 
 ### Reasonably supported
 
-- The Compound Segment **mechanism works**: B-bucket routing + per-bucket A
+- The Compound Segment mechanism works: B-bucket routing + per-bucket A
   search returns correct results and, at narrow B, reaches recall 0.9 far more
   cheaply than residual-B filtering (criterion 1, decisively, across K and with
   A-filtering active).
-- The **bucket-count K trade-off** is real and quantified: large K maximises the
+- The bucket-count K trade-off is real and quantified: large K maximises the
   narrow-B win and pushes the crossover earlier; small K preserves wide-B parity.
-- Bucketing is **near-free in space** and cheaper to build than the single graph.
-- SeRF's **L1 limitation is reproduced concretely** (§3, s_B=1%: the baseline
+- Bucketing is near-free in space and cheaper to build than the single graph.
+- SeRF's L1 limitation is reproduced concretely (§3, s_B=1%: the baseline
   cannot even reach recall 0.9 by over-fetching).
 
 ### Not established
 
-- **No faithful SeRF-2D core.** The A upper bound is a residual filter, and the
+- No faithful SeRF-2D core. The A upper bound is a residual filter, and the
   per-bucket graph is single-layer. A real SeRF-2D would do one range-aware
   search per bucket and would not pay the wide-B K-fold penalty as sharply.
-- **Absolute performance / scale.** Pure Python, n=5k; the graph methods lose to
+- Absolute performance / scale. Pure Python, n=5k; the graph methods lose to
   vectorised exact scan here (§6). Nothing is shown at the n=1M+ regime where the
   approach is meant to matter.
-- **Real data.** Synthetic vectors with attributes independent of the vectors —
+- Real data. Synthetic vectors with attributes independent of the vectors -
   the easy case. Correlated attributes (e.g. price ↔ rating) would stress the
   equal-frequency bucketing and are untested.
-- **No DBMS / SQL / persistence / updates** (the proposal's broader scope and its
+- No DBMS / SQL / persistence / updates (the proposal's broader scope and its
   own L2 append-only limitation).
 
 ---
@@ -253,12 +253,12 @@ independent and fixed; only the dataset changes):
 | 25% | 0.65×  | 0.76×  | 0.73×  |
 | 50% | 0.43×  | 0.40×  | 0.38×  |
 
-The narrow-B cell is **grid-quantised**: the baseline clears recall 0.9 at
-α=256 on seed 0 but at α=128 on seeds 1–2, and since the α grid doubles per
+The narrow-B cell is grid-quantised: the baseline clears recall 0.9 at
+α=256 on seed 0 but at α=128 on seeds 1-2, and since the α grid doubles per
 step, the ratio jumps ~2× on that boundary. The headline is therefore
-**15–25× at s_B=1%** (and a stable 3.5–4.0× at 5%), not the single-seed 24.6×.
+15-25× at s_B=1% (and a stable 3.5-4.0× at 5%), not the single-seed 24.6×.
 Criterion (1) (≥2× at s_B≤5%) holds on every seed; the wide-B rows are stable
-(0.38–0.43× at 50%). `results_partB_seed1.json`, `results_partB_seed2.json`.
+(0.38-0.43× at 50%). `results_partB_seed1.json`, `results_partB_seed2.json`.
 
 ### 9.2 Correlated B (the harder case for bucketing)
 
@@ -273,8 +273,8 @@ changes is that B-buckets now map to regions of vector space.
 | CS / SeRF ratio | 14.49× | 3.82× | 2.76× | 0.76× | 0.41× |
 
 Everything sits inside the seed-variance envelope of §9.1; at this
-correlation strength there is **no evidence that bucket routing degrades**
-(recall at the reported points: 0.96–1.00). This softens, but does not remove,
+correlation strength there is no evidence that bucket routing degrades
+(recall at the reported points: 0.96-1.00). This softens, but does not remove,
 the caveat: one correlation pattern, one strength, still synthetic.
 `results_partB_bcorr.json`.
 
@@ -282,21 +282,21 @@ the caveat: one correlation pattern, one strength, still synthetic.
 
 | s_B | SeRF+ResidualB QPS (α) | Multi-SeRF QPS (α, buckets) | ratio |
 |---:|---|---|---:|
-| 1%  | 24.0 (α=256) | 370.9 (α=16, 1.2/16) | **15.45×** |
-| 5%  | 20.9 (α=128) | 234.5 (α=2, 1.8/16)  | **11.24×** |
-| 10% | 27.4 (α=128) | 177.9 (α=1, 2.6/16)  | **6.49×** |
-| 25% | 37.9 (α=64)  | 109.4 (α=1, 5.0/16)  | **2.89×** |
+| 1%  | 24.0 (α=256) | 370.9 (α=16, 1.2/16) | 15.45× |
+| 5%  | 20.9 (α=128) | 234.5 (α=2, 1.8/16)  | 11.24× |
+| 10% | 27.4 (α=128) | 177.9 (α=1, 2.6/16)  | 6.49× |
+| 25% | 37.9 (α=64)  | 109.4 (α=1, 5.0/16)  | 2.89× |
 | 50% | 63.8 (α=32)  | 53.9 (α=1, 9.0/16)   | 0.85× |
 
-At 4× the data, the advantage **grows across the board**: the crossover moves
-past s_B=25%, and at 50% the ratio rises from 0.43× to 0.85× — nominally above
+At 4× the data, the advantage grows across the board: the crossover moves
+past s_B=25%, and at 50% the ratio rises from 0.43× to 0.85× - nominally above
 criterion (2)'s 0.80 bar, though from a single nq=50 run, so read it as "at
 the threshold", not established. The mechanism is visible in the α columns:
 the baseline's required over-fetch grows with n (α=128 at s_B=5%, vs 32 at
 n=5k) while Multi-SeRF's stays flat (α=2). This is consistent with §6's scale
-argument — bucketing pays off more as n grows — and with SeRF's own regime
+argument - bucketing pays off more as n grows - and with SeRF's own regime
 (n=1M+), which remains untested here. Absolute-scan context at n=20k:
-`RangeFirstScan` drops to 735 QPS at s_B=50% vs the graph methods' 54–64,
+`RangeFirstScan` drops to 735 QPS at s_B=50% vs the graph methods' 54-64,
 i.e. the brute-force gap is also closing with n. `results_partB_n20k.json`.
 
 ### Files added by §9
@@ -310,29 +310,29 @@ i.e. the brute-force gap is also closing with n. `results_partB_n20k.json`.
 ## 10. Adaptive routing: resolving the K trade-off at query time (added 2026-07-05)
 
 §2 concluded that no single K wins everywhere. But the trade-off does not have
-to be resolved at build time. `AdaptiveIndex` keeps **both** the K=1 baseline
+to be resolved at build time. `AdaptiveIndex` keeps both the K=1 baseline
 graph and the K=16 Compound Segment (~2× the single graph's edges; vectors
 shareable) and picks an arm per query: equal-frequency bucketing makes a
-B-selectivity estimate free — sum the covered fraction of each overlapping
-bucket's B-span — and queries with estimated `s_B ≤ τ` (τ=0.15 here) go to the
+B-selectivity estimate free - sum the covered fraction of each overlapping
+bucket's B-span - and queries with estimated `s_B ≤ τ` (τ=0.15 here) go to the
 bucketed index, the rest to the single graph.
 
 `run_adaptive.py` / `results_partB_adaptive.json` (main config; all three arms
 measured in the same process, so ratios are like-for-like):
 
-| s_B | CS/SeRF (fixed K=16) | **Adaptive/SeRF** | routed to buckets | adaptive recall |
+| s_B | CS/SeRF (fixed K=16) | Adaptive/SeRF | routed to buckets | adaptive recall |
 |---:|---:|---:|---:|---:|
-| 1%  | 28.44× | **27.29×** | 100% | 0.925 |
-| 5%  | 3.39×  | **3.29×**  | 100% | 0.986 |
-| 10% | 3.01×  | **2.14×**  | 100% | 0.980 |
-| 25% | 0.85×  | **1.07×**  | 0%   | 0.908 |
-| 50% | 0.45×  | **1.00×**  | 0%   | 0.919 |
+| 1%  | 28.44× | 27.29× | 100% | 0.925 |
+| 5%  | 3.39×  | 3.29×  | 100% | 0.986 |
+| 10% | 3.01×  | 2.14×  | 100% | 0.980 |
+| 25% | 0.85×  | 1.07×  | 0%   | 0.908 |
+| 50% | 0.45×  | 1.00×  | 0%   | 0.919 |
 
-- Where bucketing wins (1–10%), adaptive tracks fixed K=16 (the small gap is
+- Where bucketing wins (1-10%), adaptive tracks fixed K=16 (the small gap is
   routing/measurement noise: it runs the identical arm).
-- Where bucketing loses (25–50%), adaptive routes everything to the K=1 graph
-  and sits at parity instead of 0.45–0.85×.
-- **Both of the proposal's success criteria now hold simultaneously**: ≥2× at
+- Where bucketing loses (25-50%), adaptive routes everything to the K=1 graph
+  and sits at parity instead of 0.45-0.85×.
+- Both of the proposal's success criteria now hold simultaneously: ≥2× at
   `s_B ≤ 5%` (27×/3.3×) *and* within 20% of the baseline at `s_B ≥ 50%`
   (1.00×); criterion (2) previously failed at every fixed K ≥ 16 (§4).
 
@@ -353,33 +353,33 @@ skewed B, per-bucket counts would give the exact answer at the same O(K) cost.
 `--dataset siftsmall`: the TEXMEX `siftsmall` corpus: 10,000 real 128-d SIFT
 descriptors plus the corpus's own 100 held-out query vectors. The corpus has
 no structured attributes, so a and b stay synthetic Uniform[0,1]: this run
-makes the **vectors** real, not the attribute distribution.
+makes the vectors real, not the attribute distribution.
 
-**First attempt (default M=16, ef_build=64) failed the recall floor.** On real,
-clustered vectors neither arm reached recall 0.9 at any tested α — both
-plateaued at ≈0.66–0.75 (`results_partB_sift.json`). The simplified flat graph
+First attempt (default M=16, ef_build=64) failed the recall floor. On real,
+clustered vectors neither arm reached recall 0.9 at any tested α - both
+plateaued at ≈0.66-0.75 (`results_partB_sift.json`). The simplified flat graph
 that comfortably clears 0.9 on isotropic Gaussians does not have enough
 connectivity for SIFT's cluster structure at M=16. Kept and reported because it
 is a real limitation of `SegmentGraph1D`, discovered only by leaving synthetic
-data. (Multi-SeRF still dominated — higher recall *and* ~14× the QPS — but
+data. (Multi-SeRF still dominated - higher recall *and* ~14× the QPS - but
 "QPS at recall 0.9" was not measurable.)
 
-**With a stronger build (M=32, ef_build=200) the synthetic story reproduces**
+With a stronger build (M=32, ef_build=200) the synthetic story reproduces
 (`results_partB_sift_M32.json`, both arms ≥0.9 everywhere):
 
 | s_B | SeRF+ResidualB QPS (α, recall) | Multi-SeRF QPS (α, buckets, recall) | ratio |
 |---:|---|---|---:|
-| 1%  | 20.0 (α=128, r=0.929) | 294.8 (α=8, 1.2/16, r=0.937) | **14.74×** |
-| 5%  | 65.6 (α=32, r=0.947)  | 237.0 (α=2, 1.8/16, r=0.977) | **3.61×** |
+| 1%  | 20.0 (α=128, r=0.929) | 294.8 (α=8, 1.2/16, r=0.937) | 14.74× |
+| 5%  | 65.6 (α=32, r=0.947)  | 237.0 (α=2, 1.8/16, r=0.977) | 3.61× |
 | 10% | 229.7 (α=16, r=0.938) | 280.6 (α=1, 2.6/16, r=0.975) | 1.22× |
 | 25% | 258.4 (α=16, r=0.927) | 113.4 (α=1, 5.0/16, r=0.983) | 0.44× |
 | 50% | 138.6 (α=16, r=0.930) | 57.4 (α=1, 9.1/16, r=0.979)  | 0.41× |
 
-- The headline mechanism **transfers to real vectors**: 14.7× at 1%, 3.6× at
-  5%, criterion (1) met. The crossover sits slightly earlier (~10–12%) than on
+- The headline mechanism transfers to real vectors: 14.7× at 1%, 3.6× at
+  5%, criterion (1) met. The crossover sits slightly earlier (~10-12%) than on
   synthetic data at the same n-per-bucket.
 - Scope: real vectors, synthetic independent attributes, n=10k, one
-  run; and the result needed graph parameters retuned (M=32) — a sensitivity a
+  run; and the result needed graph parameters retuned (M=32) - a sensitivity a
   production system would have to manage.
 
 ---
@@ -391,39 +391,39 @@ build: 178 s for K=1, 148 s for K=16, ~52 MB estimated size either way).
 
 | s_B | SeRF+ResidualB QPS (α, recall) | Multi-SeRF QPS (α, buckets, recall) | ratio |
 |---:|---|---|---:|
-| 1%  | 3.6 (α=512, r=0.888 ✗) | 80.9 (α=32, 1.2/16, r=0.936) | **22.5×** |
-| 5%  | 3.6 (α=512, r=0.892 ✗) | 90.4 (α=16, 1.8/16, r=0.916) | **25.1×** |
-| 10% | 3.6 (α=512, r=0.930)   | 63.0 (α=16, 2.6/16, r=0.930) | **17.3×** |
-| 25% | 3.5 (α=512, r=0.904)   | 30.1 (α=16, 5.0/16, r=0.942) | **8.6×** |
-| 50% | 3.8 (α=512, r=0.916)   | 18.9 (α=16, 9.0/16, r=0.944) | **5.0×** |
+| 1%  | 3.6 (α=512, r=0.888 ✗) | 80.9 (α=32, 1.2/16, r=0.936) | 22.5× |
+| 5%  | 3.6 (α=512, r=0.892 ✗) | 90.4 (α=16, 1.8/16, r=0.916) | 25.1× |
+| 10% | 3.6 (α=512, r=0.930)   | 63.0 (α=16, 2.6/16, r=0.930) | 17.3× |
+| 25% | 3.5 (α=512, r=0.904)   | 30.1 (α=16, 5.0/16, r=0.942) | 8.6× |
+| 50% | 3.8 (α=512, r=0.916)   | 18.9 (α=16, 9.0/16, r=0.944) | 5.0× |
 
 At 20× the headline dataset, the picture changes qualitatively:
 
-- **The baseline is effectively broken at this scale.** It needs the α-grid
+- The baseline reaches the tested α-grid
   maximum (512, i.e. fetch 5,120 candidates for k=10) in every cell, lands at
-  3.5–3.8 QPS, and at s_B=1–5% still falls short of the 0.9 floor (0.888/0.892
+  3.5-3.8 QPS, and at s_B=1-5% still falls short of the 0.9 floor (0.888/0.892
   reported at its best point, so those two ratios *understate* the true
   at-recall gap).
-- **Stated precisely**: at s_B=1–5%, Multi-SeRF clears recall 0.9 while the
+- Stated precisely: at s_B=1-5%, Multi-SeRF clears recall 0.9 while the
   baseline does not at the tested α cap; those two ratios compare against the
   baseline's best sub-floor point, so they are one-sided (Multi-SeRF is both
-  faster *and* the only arm meeting the floor). At s_B=10–50%, both arms clear
+  faster *and* the only arm meeting the floor). At s_B=10-50%, both arms clear
   recall 0.9 and Multi-SeRF is faster (17.3× / 8.6× / 5.0×). The wide-B
   crossover of n=5k is gone: the per-bucket graphs (6,250 points each) reach
   the recall floor with far smaller ef than one 100k-node graph. In this single
-  run, the wide-B penalty seen in §1–2 did not persist at n=100k, which suggests
+  run, the wide-B penalty seen in §1-2 did not persist at n=100k, which suggests
   a small-n effect of this implementation rather than one that worsens with scale.
-- Trend across n for the 1% cell: 15–25× (5k) → 15.5× (20k) → 22.5× (100k);
-  and for the 50% cell: 0.38–0.43× (5k) → 0.85× (20k) → 5.0× (100k).
+- Trend across n for the 1% cell: 15-25× (5k) → 15.5× (20k) → 22.5× (100k);
+  and for the 50% cell: 0.38-0.43× (5k) → 0.85× (20k) → 5.0× (100k).
 
 Caveats: single run, nq=50, α grid capped at 512 (the baseline might clear the
-floor at higher α, but only by getting slower); both arms share the same
+floor at higher α, with lower QPS); both arms share the same
 ef = max(α·k, 64) coupling, so the comparison stays like-for-like. Still pure
 single-thread Python and still below SeRF's n=1M+ regime.
 
-**Engineering note (why not just make it faster):** an attempt to NumPy-
+Engineering note (why not just make it faster): an attempt to NumPy-
 vectorise the per-node edge filter in `SegmentGraph1D.query` made queries
-**2.4× slower** (ef=2560, n=5k): with M=16 a node has ~32 out-edges, and NumPy
+2.4× slower (ef=2560, n=5k): with M=16 a node has ~32 out-edges, and NumPy
 per-call overhead on 32-element arrays dwarfs the tight-loop cost it replaces.
 The change was verified behaviour-identical (bit-identical smoke results) and
 then reverted. Pushing past n≈100k needs a compiled kernel (numba/C++), which
@@ -444,18 +444,18 @@ Adaptive/SeRF QPS ratio, with the fraction of queries routed to buckets:
 | 25% | 0.64×  | 1.00× (0%)    | 0.76× (0%)    | 0.75× (0%)    | 1.09× (66%)   | 0.67× (100%) |
 | 50% | 0.37×  | 0.87× (0%)    | 1.03× (0%)    | 0.85× (0%)    | 1.24× (0%)    | 0.51× (68%)  |
 
-- **The result is not a τ=0.15 coincidence: τ ∈ [0.10, 0.25] all behave.**
-  Narrow-B routing (1%) is unanimous across every τ tested; the 5–10% wins
+- The result is not a τ=0.15 coincidence: τ ∈ [0.10, 0.25] all behave.
+  Narrow-B routing (1%) is unanimous across every τ tested; the 5-10% wins
   hold for τ ≥ 0.10 (≥ 0.15 for the full 10% win); wide-B stays at ≈parity
   for τ ≤ 0.25.
-- The failure modes are the two predictable ones. **τ too small (0.05)
-  under-routes**: it forfeits the 5% win partially (73% routed → 1.86×) and
-  the 10% win entirely (0% routed → 1.04×): safe but wasteful. **τ too large
-  (0.50) over-routes**: it inherits the wide-B penalty it was supposed to
+- The failure modes are the two predictable ones. τ too small (0.05)
+  under-routes: it forfeits the 5% win partially (73% routed → 1.86×) and
+  the 10% win entirely (0% routed → 1.04×): safe but wasteful. τ too large
+  (0.50) over-routes: it inherits the wide-B penalty it was supposed to
   avoid (0.67× at 25%, 0.51× at 50%).
 - Reading the noise: cells where adaptive routes 0% run the *same
-  arm* as the baseline, so their ratio is pure run-to-run timing variance —
-  here spanning 0.75–1.24×. Treat ±25% as the noise band on any single cell,
+  arm* as the baseline, so their ratio is pure run-to-run timing variance -
+  here spanning 0.75-1.24×. Treat ±25% as the noise band on any single cell,
   consistent with §9.1. (Same reason the CS/SeRF 1% cell reads 45.8× in this
   run: the baseline landed on its slow α=256 grid point at 15.4 QPS.)
 - Boundary cells route *partially* (e.g. 60% at τ=0.10/s_B=10%) because the
@@ -465,10 +465,10 @@ Adaptive/SeRF QPS ratio, with the fraction of queries routed to buckets:
 ## 14. Mixed workload: one stream, one shared α per index (added 2026-07-05)
 
 `run_mixed_workload.py` / `results_partB_mixed_workload.json`. Instead of
-per-selectivity sweeps, one query stream mixing window widths — 40% at
+per-selectivity sweeps, one query stream mixing window widths - 40% at
 s_B=1%, 20% at 5%, 20% at 10%, 10% at 25%, 10% at 50% (nq=100, main config)
-— and one shared over-fetch α per index, raised until **mean recall over the
-whole stream** ≥ 0.9. This is closer to a system setting where the index
+- and one shared over-fetch α per index, raised until mean recall over the
+whole stream ≥ 0.9. This is closer to a system setting where the index
 cannot retune per query class.
 
 | arm | α | mean recall | QPS | vs K=1 |
@@ -476,27 +476,27 @@ cannot retune per query class.
 | SeRF+ResidualB (K=1) | 128 | 0.949 | 26.3 | 1.00× |
 | Multi-SeRF K=4 | 32 | 0.954 | 86.0 | 3.28× |
 | Multi-SeRF K=16 | 8 | 0.960 | 238.7 | 9.09× |
-| **Adaptive (τ=0.15)** | 8 | 0.920 | **262.2** | **9.98×** |
+| Adaptive (τ=0.15) | 8 | 0.920 | 262.2 | 9.98× |
 
 - On this narrow-heavy mix the adaptive router (80% of the stream routed to
-  buckets) gives the **best overall throughput: 9.98× the baseline, and
-  slightly above fixed K=16**: the 20% wide queries run on the cheap single
+  buckets) gives the best overall throughput: 9.98× the baseline, and
+  slightly above fixed K=16: the 20% wide queries run on the cheap single
   graph instead of paying K=16's multi-bucket cost.
 - The baseline pays for the whole stream at once: the 40% narrow queries force
   α=128 *for every query*, dropping it to 26 QPS.
 - Caveats: single run, single seed, one hand-picked mix. The recall
-  floor is on the **stream mean** (0.92); per-class recall is not
+  floor is on the stream mean (0.92); per-class recall is not
   individually floored, and the narrow classes sit closest to the boundary.
   A wide-heavy mix would favour K=1/K=4 and shrink adaptive's margin toward
   parity; the point established here is that adaptive needs no per-workload
   retuning to sit at or near the best fixed arm.
 
-### Files added by §13–14
+### Files added by §13-14
 
 - `run_adaptive_tau_sweep.py`, `results_partB_adaptive_tau.json`
 - `run_mixed_workload.py`, `results_partB_mixed_workload.json`
 
-### Files added by §10–12
+### Files added by §10-12
 
 - `run_adaptive.py`, `results_partB_adaptive.json`
 - `results_partB_sift.json`: SIFT10K, default build (recall
