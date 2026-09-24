@@ -17,11 +17,11 @@ The full Part A vision is a `vss` extension fork that plugs PQ-compressed graph 
 - C++ extension boilerplate: `CREATE INDEX` parsing, catalog entries, snapshotting, MVCC versioning, planner rewrite for `ORDER BY array_distance(...) LIMIT k`.
 - Block manager surgery: making the on-disk graph live in DuckDB's `.duckdb` page file and route through the shared buffer manager.
 
-Neither of those exercises tests the algorithmic claims of the proposal. They are real engineering work but they don't tell us whether *PQ-pruned beam search over a Vamana graph* recovers HNSW-level recall on disk. So the prototype isolates the algorithmic kernel and uses a flat OS file as a stand-in for the DuckDB page file. Every page-aligned read in the prototype maps 1-to-1 to a future `BufferManager::Pin(block_id)` call in the real extension - we just replace the call site, not the data structure.
+The prototype tests the graph-search algorithm with a flat file. DuckDB integration through `BufferManager::Pin(block_id)` is unimplemented; a 1-to-1 mapping from prototype reads to buffer-manager calls has not been validated.
 
 ## 2. On-disk layout
 
-One file, page size `P = 4096 B` (matches DuckDB's default block size, makes the prototype's I/O patterns representative). All segments are page-aligned. Multi-byte integers little-endian.
+One file, prototype page size `P = 4096 B`. All segments are page-aligned. Multi-byte integers are little-endian. DuckDB's [default storage block size](https://duckdb.org/docs/lts/configuration/pragmas#block-sizes) is 256 kB, so this layout does not establish equivalent DuckDB I/O behavior.
 
 ```
 +---------------------------------------------+  page 0

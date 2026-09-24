@@ -421,7 +421,7 @@ floor at higher α, with lower QPS); both arms share the same
 ef = max(α·k, 64) coupling, so the comparison stays like-for-like. Still pure
 single-thread Python and still below SeRF's n=1M+ regime.
 
-Engineering note (why not just make it faster): an attempt to NumPy-
+An attempt to NumPy-
 vectorise the per-node edge filter in `SegmentGraph1D.query` made queries
 2.4× slower (ef=2560, n=5k): with M=16 a node has ~32 out-edges, and NumPy
 per-call overhead on 32-element arrays dwarfs the tight-loop cost it replaces.

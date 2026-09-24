@@ -15,7 +15,7 @@ same hyperparameters clear it on clustered SIFT10K (recall@10 = 0.998 at L=64).
 The SIFT result is still a small warm-cache prototype run, not a SIFT1M-scale
 benchmark.
 
-## 0. Caveats up front (please read before the tables)
+## 0. Measurement limits
 
 These caveats apply to every number in this document.
 
@@ -25,7 +25,7 @@ These caveats apply to every number in this document.
   query's true top-1 trivially itself and inflated recall. Concretely, at
   n=5k the in-set vs held-out gap is 0.087 / 0.047 / 0.022 across
   L=64 / 128 / 256; at n=10k it is 0.114 / 0.048 / 0.024. §1.2 is kept for
-  reference only; please cite §1.1.
+  historical reference; §1.1 contains the held-out results.
 - `proto-mmap` is not a cold-cache test. It runs against whatever the OS
   page cache happens to hold across consecutive queries. The original design
   called for a `proto-cold` baseline that flushes the cache between queries;
